@@ -1,12 +1,18 @@
-
 extends layout
 
 block content
-  h1 Bienvenido al sistema HIS Hospital
-  p Sistema de recepción y admisión de pacientes
+  .container.mt-5
+    .jumbotron.bg-light.p-5.rounded
+      h1.display-4.mb-4 Bienvenido al sistema HIS Hospital
+      p.lead.mb-4 Sistema de recepción y admisión de pacientes
 
-  ul
-    li
-      a(href="/pacientes") Admisión
-    li
-      a(href="/pacientes/nuevo") Emergencia 
+      hr.my-4
+
+      h2.mb-3 Acciones principales
+      .list-group
+        a(href="/pacientes").list-group-item.list-group-item-action
+          i.fas.fa-user-plus.me-2
+          | Admisión
+        a(href="/pacientes/nuevo").list-group-item.list-group-item-action
+          i.fas.fa-first-aid.me-2
+          | Admisión de Urgencias / Guardia

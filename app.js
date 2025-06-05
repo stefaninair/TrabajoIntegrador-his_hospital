@@ -36,6 +36,9 @@ app.use('/', indexRouter);
 const pacientesRouter = require('./routes/pacientes');
 app.use('/pacientes', pacientesRouter);
 
+const internacionesRouter = require('./routes/internaciones');
+app.use('/internaciones', internacionesRouter);
+
 // Iniciar servidor
 app.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
