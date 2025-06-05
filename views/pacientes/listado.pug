@@ -1,0 +1,55 @@
+extends ../layout
+
+block content
+  h1 Lista de Pacientes
+
+  //- Input de búsqueda en vivo
+  input#buscadorDNI(type='text', placeholder='Buscar paciente por DNI...', style="padding:6px; margin-bottom: 20px; width: 300px;")
+
+  //- Botón de nuevo paciente
+  a(href='/pacientes/nuevo', style="display:inline-block; margin-left: 20px; padding: 8px 16px; background:#4CAF50; color:white; text-decoration:none; border-radius:4px;") ➕ Nuevo Paciente
+
+  //- Tabla de pacientes
+  table#tablaPacientes(border='1', style="margin-top: 10px; width: 100%;")
+    thead
+      tr
+        th DNI
+        th Nombre
+        th Apellido
+        th Seguro Médico
+        th Nº Afiliado
+        th Fecha de nacimiento
+        th Sexo
+        th Acciones
+    tbody
+      each paciente in pacientes
+        tr
+          td.dni= paciente.dni
+          td= paciente.nombre
+          td= paciente.apellido
+          td= paciente.nombre_seguro
+          td= paciente.nro_afiliado
+          td= paciente.fecha_nacimiento.toISOString().slice(0,10)
+          td= paciente.sexo
+          td
+            a(href=`/pacientes/editar/${paciente.id}`) Editar
+            |  
+            form(action=`/pacientes/eliminar/${paciente.id}`, method='POST', style='display:inline')
+              button(type='submit', onclick='return confirm("¿Estás seguro de eliminar este paciente?")') Eliminar
+
+  //- Botón volver al inicio
+  a(href='/', style="display:inline-block; margin-top: 20px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") ← Volver al Inicio
+
+  //- Script para filtrar en tiempo real
+  script.
+    const input = document.getElementById('buscadorDNI');
+    const filas = document.querySelectorAll('#tablaPacientes tbody tr');
+
+    input.addEventListener('input', () => {
+      const filtro = input.value.trim().toLowerCase();
+
+      filas.forEach(fila => {
+        const dni = fila.querySelector('.dni').textContent.toLowerCase();
+        fila.style.display = dni.includes(filtro) ? '' : 'none';
+      });
+    });

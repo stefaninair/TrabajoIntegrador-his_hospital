@@ -1,0 +1,41 @@
+extends ../layout
+
+block content
+  h1 Editar paciente
+
+  form(action=`/pacientes/editar/${paciente.id}`, method='POST')
+    div
+      label Nombre:
+      input(type='text', name='nombre', value=paciente.nombre, required)
+    div
+      label Apellido:
+      input(type='text', name='apellido', value=paciente.apellido, required)
+    div
+      label DNI:
+      input(type='text', name='dni', value=paciente.dni, required)
+    div
+      label Fecha de nacimiento:
+      input(type='date', name='fecha_nacimiento', value=paciente.fecha_nacimiento.toISOString().slice(0,10), required)
+    div
+      label Sexo:
+      select(name='sexo')
+        option(value='M' selected=paciente.sexo==='M') M
+        option(value='F' selected=paciente.sexo==='F') F
+    div
+      label Dirección:
+      input(type='text', name='direccion', value=paciente.direccion)
+    div
+      label Teléfono:
+      input(type='text', name='telefono', value=paciente.telefono)
+    div
+      label Seguro Médico:
+      select(name='id_seguro')
+        each seguro in seguros
+          option(value=seguro.id selected=seguro.id === paciente.id_seguro)= seguro.nombre
+    div
+      label Número de Afiliado:
+      input(type='text', name='nro_afiliado', value=paciente.nro_afiliado)
+
+    div(style="margin-top: 20px")
+      a(href='/pacientes', style="margin-right: 10px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") ← Volver
+      button(type='submit', style="padding: 8px 16px; background:#2196F3; color:white; border:none; border-radius:4px;") 💾 Guardar Cambios
