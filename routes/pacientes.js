@@ -1,18 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-
-// --- Ruta principal para buscar pacientes por DNI ---
-router.get('/', async (req, res) => {
-  const [pacientes] = await req.db.query(`
-    SELECT pacientes.*, seguros_medicos.nombre AS nombre_seguro
-    FROM pacientes
-    LEFT JOIN seguros_medicos ON pacientes.id_seguro = seguros_medicos.id
-  `);
-  res.render('pacientes/listado', { pacientes });
-});
-
-
 // Mostrar todos los pacientes
 router.get('/', async (req, res) => {
   const [pacientes] = await req.db.query(`
@@ -30,7 +18,6 @@ router.get('/nuevo', async (req, res) => {
 });
 
 // Guardar nuevo paciente
-// Guardar nuevo paciente
 router.post('/nuevo', async (req, res) => {
   const { nombre, apellido, dni, fecha_nacimiento, sexo, direccion, telefono, id_seguro, nro_afiliado } = req.body;
   await req.db.query(
@@ -41,7 +28,7 @@ router.post('/nuevo', async (req, res) => {
   res.redirect('/pacientes');
 });
 
-// Mostrar formulario para editar paciente
+// Formulario para editar paciente
 router.get('/editar/:id', async (req, res) => {
   const id = req.params.id;
   const [pacienteResult] = await req.db.query('SELECT * FROM pacientes WHERE id = ?', [id]);
@@ -57,7 +44,7 @@ router.get('/editar/:id', async (req, res) => {
   });
 });
 
-// Guardar cambios del paciente editado
+// Guardar cambios del paciente
 router.post('/editar/:id', async (req, res) => {
   const id = req.params.id;
   const { nombre, apellido, dni, fecha_nacimiento, sexo, direccion, telefono, id_seguro, nro_afiliado } = req.body;
@@ -70,13 +57,11 @@ router.post('/editar/:id', async (req, res) => {
   res.redirect('/pacientes');
 });
 
-// Ruta para eliminar un paciente
+// Eliminar paciente
 router.post('/eliminar/:id', async (req, res) => {
   const id = req.params.id;
   await req.db.query('DELETE FROM pacientes WHERE id = ?', [id]);
   res.redirect('/pacientes');
 });
 
-
 module.exports = router;
-
