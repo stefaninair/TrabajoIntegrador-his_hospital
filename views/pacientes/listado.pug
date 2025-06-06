@@ -1,45 +1,46 @@
 extends ../layout
 
 block content
+  //- Botón volver al inicio (MOVIDO AQUÍ)
+  a(href='/', style="display:inline-block; margin-bottom: 20px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") ← Volver al Inicio
+
   h1 Lista de Pacientes
 
-  //- Input de búsqueda en vivo
-  input#buscadorDNI(type='text', placeholder='Buscar paciente por DNI...', style="padding:6px; margin-bottom: 20px; width: 300px;")
+  //- Contenedor para centrar el buscador y el botón de nuevo paciente
+  div(style="text-align: center; margin-bottom: 20px;")
+    input#buscadorDNI(type='text', placeholder='Buscar paciente por DNI...', style="padding:10px; width: 350px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; vertical-align: middle;")
+    a(href='/pacientes/nuevo', style="display:inline-block; margin-left: 20px; padding: 10px 20px; background:#4CAF50; color:white; text-decoration:none; border-radius:4px; font-size: 16px; vertical-align: middle;") ➕ Nuevo Paciente
 
-  //- Botón de nuevo paciente
-  a(href='/pacientes/nuevo', style="display:inline-block; margin-left: 20px; padding: 8px 16px; background:#4CAF50; color:white; text-decoration:none; border-radius:4px;") ➕ Nuevo Paciente
-
-  //- Tabla de pacientes
-  table#tablaPacientes(border='1', style="margin-top: 10px; width: 100%;")
-    thead
-      tr
-        th DNI
-        th Nombre
-        th Apellido
-        th Seguro Médico
-        th Nº Afiliado
-        th Fecha de nacimiento
-        th Sexo
-        th Acciones
-    tbody
-      each paciente in pacientes
+  //- Contenedor para centrar la tabla
+  div(style="display: flex; justify-content: center;") 
+    //- Tabla de pacientes
+    table#tablaPacientes(border='1', style="margin-top: 10px; width: auto; border-collapse: separate; border-spacing: 2px; border: 3px double black;")
+      thead
         tr
-          td.dni= paciente.dni
-          td= paciente.nombre
-          td= paciente.apellido
-          td= paciente.nombre_seguro
-          td= paciente.nro_afiliado
-          td= paciente.fecha_nacimiento.toISOString().slice(0,10)
-          td= paciente.sexo
-          td
-            a(href=`/pacientes/editar/${paciente.id}`, style="margin-right: 5px; background: #2196F3; color: white; padding: 6px 12px; border-radius: 4px;") ✏️ Editar
-            form(action=`/pacientes/eliminar/${paciente.id}`, method='POST', style='display:inline')
-              button(type='submit', style="background: #f44336; color: white; padding: 6px 12px; border: none; border-radius: 4px;" onclick='return confirm("¿Estás seguro de eliminar este paciente?")') 🗑 Eliminar
-            a(href=`/ambulatorio/registrar/${paciente.id}`, style="margin-left: 5px; background: #4CAF50; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;") 🩺 Ambulatorio
-            a(href=`/internaciones/nueva/${paciente.id}`, style="margin-left: 5px; background: #FF9800; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;") 🏥 Internación
-
-  //- Botón volver al inicio
-  a(href='/', style="display:inline-block; margin-top: 20px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") ← Volver al Inicio
+          th(style="padding: 8px; border: 1px solid #ddd;") DNI
+          th(style="padding: 8px; border: 1px solid #ddd;") Nombre
+          th(style="padding: 8px; border: 1px solid #ddd;") Apellido
+          th(style="padding: 8px; border: 1px solid #ddd;") Seguro Médico
+          th(style="padding: 8px; border: 1px solid #ddd;") Nº Afiliado
+          th(style="padding: 8px; border: 1px solid #ddd;") Fecha de nacimiento
+          th(style="padding: 8px; border: 1px solid #ddd;") Sexo
+          th(style="padding: 8px; border: 1px solid #ddd;") Acciones 
+      tbody
+        each paciente in pacientes
+          tr
+            td.dni(style="padding: 8px; border: 1px solid #ddd;")= paciente.dni
+            td(style="padding: 8px; border: 1px solid #ddd;")= paciente.nombre
+            td(style="padding: 8px; border: 1px solid #ddd;")= paciente.apellido
+            td(style="padding: 8px; border: 1px solid #ddd;")= paciente.nombre_seguro
+            td(style="padding: 8px; border: 1px solid #ddd;")= paciente.nro_afiliado
+            td(style="padding: 8px; border: 1px solid #ddd;")= paciente.fecha_nacimiento.toISOString().slice(0,10)
+            td(style="padding: 8px; border: 1px solid #ddd;")= paciente.sexo
+            td(style="display: flex; gap: 8px; align-items: center; padding: 8px; border: 1px solid #ddd;") 
+              a(href=`/pacientes/editar/${paciente.id}`, style="background: #2196F3; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;") ✏️ Editar
+              a(href=`/ambulatorio/registrar/${paciente.id}`, style="background: #4CAF50; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;") 🩺 Ambulatorio
+              a(href=`/internaciones/nueva/${paciente.id}`, style="background: #FF9800; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;") 🏥 Internación
+              form(action=`/pacientes/eliminar/${paciente.id}`, method='POST', style='display:inline;')
+                button(type='submit', style="background: #f44336; color: white; padding: 6px 12px; border: none; border-radius: 4px;" onclick='return confirm("¿Estás seguro de eliminar este paciente?")') 🗑 Eliminar
 
   //- Script para filtrar en tiempo real
   script.
