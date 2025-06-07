@@ -11,33 +11,33 @@ router.get('/nueva/:pacienteId', async (req, res) => {
 
   const paciente = pacienteResult[0];
 
-  // Obtener habitaciones disponibles (por ahora todas, después filtramos por ala y condiciones)
-  const [habitaciones] = await req.db.query(`
-    SELECT * FROM habitaciones 
-    WHERE estado = 'Disponible' AND higienizada = 1
+  // Obtener camas disponibles (higienizadas y libres)
+  const [camas] = await req.db.query(`
+    SELECT camas.id, camas.numero_cama, habitaciones.numero_habitacion AS numero_habitacion
+    FROM camas
+    JOIN habitaciones ON camas.id_habitacion = habitaciones.id
+    WHERE camas.estado = 'libre' AND camas.higienizada = 1
   `);
 
   res.render('internaciones/nueva', {
     paciente,
-    habitaciones
+    camas
   });
 });
 
 // Guardar internación
 router.post('/nueva/:id', async (req, res) => {
   const id_paciente = req.params.id;
-  const { motivo, preoperatorios, autorizaciones, documentacion, id_habitacion } = req.body;
-
-  // TODO: Acá podrías agregar más validaciones si lo deseas
+  const { motivo, preoperatorios, autorizaciones, documentacion, id_cama } = req.body;
 
   // Registrar la internación
   await req.db.query(`
-    INSERT INTO internaciones (id_paciente, motivo, preoperatorios, autorizaciones, documentacion, id_habitacion)
+    INSERT INTO internaciones (id_paciente, motivo, preoperatorios, autorizaciones, documentacion, id_cama)
     VALUES (?, ?, ?, ?, ?, ?)`,
-    [id_paciente, motivo, preoperatorios || null, autorizaciones || null, documentacion || null, id_habitacion]);
+    [id_paciente, motivo, preoperatorios || null, autorizaciones || null, documentacion || null, id_cama]);
 
-  // Cambiar estado de la habitación
-  await req.db.query(`UPDATE habitaciones SET estado = 'Ocupada' WHERE id = ?`, [id_habitacion]);
+  // Cambiar estado de la cama a ocupada
+  await req.db.query(`UPDATE camas SET estado = 'ocupada' WHERE id = ?`, [id_cama]);
 
   res.redirect('/pacientes');
 });
