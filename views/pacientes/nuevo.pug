@@ -1,52 +1,53 @@
 extends ../layout
 
 block content
-  h1 Nuevo Paciente
-  form(action="/pacientes/nuevo", method="POST")
-    label Nombre:
-    input(type="text", name="nombre", required)
-    br
+  .container.my-5
+    .card.shadow-lg.mx-auto.border-0.rounded-4(style="max-width: 800px;")
+      .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
+        h1.mb-0.display-5 Registro de Nuevo Paciente
+      .card-body.p-5
+        form(action="/pacientes/nuevo", method="POST")
+          .row.g-4.mb-4
+            .col-md-6.form-floating
+              input.form-control.rounded-3(type="text", id="nombre", name="nombre", placeholder="Nombre del Paciente", required)
+              label(for="nombre") Nombre:
+            .col-md-6.form-floating
+              input.form-control.rounded-3(type="text", id="apellido", name="apellido", placeholder="Apellido del Paciente", required)
+              label(for="apellido") Apellido:
 
-    label Apellido:
-    input(type="text", name="apellido", required)
-    br
+          .row.g-4.mb-4
+            .col-md-6.form-floating
+              input.form-control.rounded-3(type="text", id="dni", name="dni", placeholder="Número de DNI", required)
+              label(for="dni") DNI:
+            .col-md-6.form-floating
+              input.form-control.rounded-3(type="date", id="fecha_nacimiento", name="fecha_nacimiento", placeholder="Fecha de nacimiento")
+              label(for="fecha_nacimiento") Fecha de nacimiento:
 
-    label DNI:
-    input(type="text", name="dni", required)
-    br
+          .mb-4
+            label.form-label.fw-bold.fs-5(for="sexo") Sexo:
+            select.form-select.form-select-lg.rounded-3(id="sexo", name="sexo")
+              option(value="M") Masculino
+              option(value="F") Femenino
 
-    label Fecha de nacimiento:
-    input(type="date", name="fecha_nacimiento", required)
-    br
+          .mb-4.form-floating
+            input.form-control.rounded-3(type="text", id="direccion", name="direccion", placeholder="Dirección completa")
+            label(for="direccion") Dirección:
 
-    label Sexo:
-    select(name="sexo")
-      option(value="M") Masculino
-      option(value="F") Femenino
-    br
+          .mb-4.form-floating
+            input.form-control.rounded-3(type="text", id="telefono", name="telefono", placeholder="Número de teléfono")
+            label(for="telefono") Teléfono:
 
-    label Dirección:
-    input(type="text", name="direccion")
-    br
+          .row.g-4.mb-5
+            .col-md-6
+              label.form-label.fw-bold.fs-5(for="id_seguro") Seguro Médico:
+              select.form-select.form-select-lg.rounded-3(id="id_seguro", name="id_seguro")
+                option(value="") -- Ninguno --
+                each s in seguros
+                  option(value=s.id)= s.nombre
+            .col-md-6.form-floating
+              input.form-control.rounded-3(type="text", id="nro_afiliado", name="nro_afiliado", placeholder="Número de Afiliado")
+              label(for="nro_afiliado") Número de Afiliado:
 
-    label Teléfono:
-    input(type="text", name="telefono")
-    br
-
-    label Seguro Médico:
-    select(name="id_seguro")
-      option(value="") -- Ninguno --
-      each s in seguros
-        option(value=s.id)= s.nombre
-    br
-    label Número de Afiliado:
-    input(type="text", name="nro_afiliado")
-    br
-
-    
-    div(style="margin-top: 20px")
-      a(href="/pacientes", style="margin-right: 10px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") ← Volver
-      button(type="submit", style="padding: 8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px;") Guardar Paciente
-
-
-
+          .d-flex.justify-content-center.gap-3.pt-4.border-top
+            a(href="/pacientes").btn.btn-secondary.btn-lg.rounded-pill ← Volver
+            button(type="submit").btn.btn-success.btn-lg.rounded-pill Guardar Paciente

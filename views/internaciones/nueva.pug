@@ -12,7 +12,6 @@ block content
       option(value="emergencia") Emergencia
     br
 
-    // Campos específicos si es cirugía
     div#campos-cirugia(style="display:none; margin-top:10px; padding:10px; border:1px solid #ccc; border-radius:5px;")
       h3 Información adicional para cirugía
       label(for="preoperatorios") Preoperatorios:
@@ -26,11 +25,11 @@ block content
       br
 
     br
-    label(for="id_habitacion") Seleccionar habitación disponible:
-    select(name="id_habitacion", required)
-      option(value="") -- Seleccionar habitación --
-      each h in habitaciones
-        option(value=h.id)= `${h.ala} - Habitación ${h.numero} (${h.cantidad_camas} camas)`
+    label(for="id_cama") Seleccionar cama disponible:
+    select(name="id_cama", required)
+      option(value="") -- Seleccionar cama --
+      each cama in camas
+        option(value=cama.id)= `Hab. ${cama.numero_habitacion} - Cama ${cama.numero_cama}`
 
     br
     button(type="submit" style="margin-top: 15px; padding: 8px 16px;") Confirmar Internación

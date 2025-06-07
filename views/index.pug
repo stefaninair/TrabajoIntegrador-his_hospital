@@ -1,18 +1,26 @@
 extends layout
 
 block content
-  .container.mt-5
-    .jumbotron.bg-light.p-5.rounded
-      h1.display-4.mb-4 Bienvenido al sistema HIS Hospital
-      p.lead.mb-4 Sistema de recepción y admisión de pacientes
+  h1.display-4.mb-4 Bienvenido al sistema HIS Hospital
+  p.lead.mb-5 Sistema de recepción y admisión de pacientes
 
-      hr.my-4
+  .row.justify-content-center.g-4
+    .col-md-6.col-lg-5
+      .card.h-100.shadow-lg.border-0.bg-white.text-dark 
+        .card-body.d-flex.flex-column.align-items-center.justify-content-center
+          i.fas.fa-user-plus.fa-4x.mb-3.text-primary
+          // Título y texto de la tarjeta de Admisión
+          h5.card-title.mb-3  
+          p.card-text.mb-4  
+          // Botón de Admisión
+          a(href="/pacientes").btn.btn-primary.btn-lg.mt-3 Admisión
 
-      h2.mb-3 Acciones principales
-      .list-group
-        a(href="/pacientes").list-group-item.list-group-item-action
-          i.fas.fa-user-plus.me-2
-          | Admisión
-        a(href="/pacientes/nuevo").list-group-item.list-group-item-action
-          i.fas.fa-first-aid.me-2
-          | Admisión de Urgencias / Guardia
+    .col-md-6.col-lg-5
+      .card.h-100.shadow-lg.border-0.bg-white.text-dark 
+        .card-body.d-flex.flex-column.align-items-center.justify-content-center
+          i.fas.fa-first-aid.fa-4x.mb-3.text-success
+          // Título y texto de la tarjeta de Urgencias/Guardia
+          h5.card-title.mb-3  
+          p.card-text.mb-4  
+          // Botón de Urgencias/Guardia (ahora rojo)
+          a(href="/pacientes/nuevo").btn.btn-success.btn-lg.mt-3 Emergencia
