@@ -1,53 +1,69 @@
 extends ../layout
 
 block content
-  .container.my-5
-    .card.shadow-lg.mx-auto.border-0.rounded-4(style="max-width: 800px;")
-      .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
-        h1.mb-0.display-5 Registro de Nuevo Paciente
-      .card-body.p-5
-        form(action="/pacientes/nuevo", method="POST")
-          .row.g-4.mb-4
-            .col-md-6.form-floating
-              input.form-control.rounded-3(type="text", id="nombre", name="nombre", placeholder="Nombre del Paciente", required)
-              label(for="nombre") Nombre:
-            .col-md-6.form-floating
-              input.form-control.rounded-3(type="text", id="apellido", name="apellido", placeholder="Apellido del Paciente", required)
-              label(for="apellido") Apellido:
+  h1 Registro de Nuevo Paciente
 
-          .row.g-4.mb-4
-            .col-md-6.form-floating
-              input.form-control.rounded-3(type="text", id="dni", name="dni", placeholder="Número de DNI", required)
-              label(for="dni") DNI:
-            .col-md-6.form-floating
-              input.form-control.rounded-3(type="date", id="fecha_nacimiento", name="fecha_nacimiento", placeholder="Fecha de nacimiento")
-              label(for="fecha_nacimiento") Fecha de nacimiento:
+  form(action="/pacientes/nuevo", method="POST")
+    div
+      label DNI:
+      input(type='text', name='dni', value=dni, required)
+      if errores && errores.dni
+        div(style="color:red; font-size:0.9em")= errores.dni
 
-          .mb-4
-            label.form-label.fw-bold.fs-5(for="sexo") Sexo:
-            select.form-select.form-select-lg.rounded-3(id="sexo", name="sexo")
-              option(value="M") Masculino
-              option(value="F") Femenino
+    div
+      label Apellido:
+      input(type='text', name='apellido', value=apellido, required)
+      if errores && errores.apellido
+        div(style="color:red; font-size:0.9em")= errores.apellido
 
-          .mb-4.form-floating
-            input.form-control.rounded-3(type="text", id="direccion", name="direccion", placeholder="Dirección completa")
-            label(for="direccion") Dirección:
+    div
+      label Nombre:
+      input(type='text', name='nombre', value=nombre, required)
+      if errores && errores.nombre
+        div(style="color:red; font-size:0.9em")= errores.nombre
 
-          .mb-4.form-floating
-            input.form-control.rounded-3(type="text", id="telefono", name="telefono", placeholder="Número de teléfono")
-            label(for="telefono") Teléfono:
+    div
+      label Teléfono:
+      input(type='text', name='telefono', value=telefono)
 
-          .row.g-4.mb-5
-            .col-md-6
-              label.form-label.fw-bold.fs-5(for="id_seguro") Seguro Médico:
-              select.form-select.form-select-lg.rounded-3(id="id_seguro", name="id_seguro")
-                option(value="") -- Ninguno --
-                each s in seguros
-                  option(value=s.id)= s.nombre
-            .col-md-6.form-floating
-              input.form-control.rounded-3(type="text", id="nro_afiliado", name="nro_afiliado", placeholder="Número de Afiliado")
-              label(for="nro_afiliado") Número de Afiliado:
+    div  
+      label Correo electrónico:
+      input(type='email', name='correo', value=correo)
+      if errores && errores.correo
+        div(style="color:red; font-size:0.9em")= errores.correo
 
-          .d-flex.justify-content-center.gap-3.pt-4.border-top
-            a(href="/pacientes").btn.btn-secondary.btn-lg.rounded-pill ← Volver
-            button(type="submit").btn.btn-success.btn-lg.rounded-pill Guardar Paciente
+    div
+      label Fecha de nacimiento:
+      input(type='date', name='fecha_nacimiento', value=fecha_nacimiento, required)
+      if errores && errores.fecha_nacimiento
+        div(style="color:red; font-size:0.9em")= errores.fecha_nacimiento
+
+    div
+      label Género:
+      select(name='sexo', required)
+        option(value='') Seleccionar...
+        option(value='M', selected=sexo==='M') M
+        option(value='F', selected=sexo==='F') F
+      if errores && errores.sexo
+        div(style="color:red; font-size:0.9em")= errores.sexo
+
+    div
+      label Dirección:
+      input(type='text', name='direccion', value=direccion)
+
+    div
+      label Seguro Médico:
+      select(name='id_seguro', required)
+        option(value='') Seleccionar...
+        each seguro in seguros
+          option(value=seguro.id, selected=id_seguro==seguro.id)= seguro.nombre
+      if errores && errores.id_seguro
+        div(style="color:red; font-size:0.9em")= errores.id_seguro
+
+    div
+      label Número de Afiliado:
+      input(type='text', name='nro_afiliado', value=nro_afiliado)
+
+    div(style="margin-top: 20px")
+      a(href='/pacientes', style="margin-right: 10px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") ← Volver
+      button(type='submit', style="padding: 8px 16px; background:#2196F3; color:white; border:none; border-radius:4px;") 💾 Guardar Paciente
