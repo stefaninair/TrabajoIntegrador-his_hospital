@@ -1,6 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
+// Formulario para editar paciente
+router.get('/editar/:id', async (req, res) => {
+  const id = req.params.id;
+
+  const [pacienteResult] = await req.db.query('SELECT * FROM pacientes WHERE id = ?', [id]);
+  const [seguros] = await req.db.query('SELECT * FROM seguros_medicos');
+
+  if (pacienteResult.length === 0) {
+    return res.send('Paciente no encontrado');
+  }
+
+  res.render('pacientes/editar', {
+    paciente: pacienteResult[0],
+    seguros
+  });
+});
+
 // Mostrar todos los pacientes
 router.get('/', async (req, res, next) => {
   try {

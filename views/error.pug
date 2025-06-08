@@ -1,0 +1,7 @@
+extends layout
+block content
+  h1 ¡Ups! Algo salió mal.
+  p Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más tarde.
+  if error
+    pre #{error.stack} 
+  a(href="/") Volver a la página principal

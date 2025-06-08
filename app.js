@@ -13,6 +13,7 @@ app.set('views', path.join(__dirname, 'views'));
 // Archivos estáticos y middleware para formularios
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Middleware para conexión a la base de datos
 const dbMiddleware = require('./db');
@@ -20,12 +21,14 @@ app.use(dbMiddleware);
 
 // Rutas
 const indexRouter = require('./routes/index');
-const pacientesRouter = require('./routes/pacientes');
-const internacionesRouter = require('./routes/internaciones');
-
 app.use('/', indexRouter);
+const pacientesRouter = require('./routes/pacientes');
 app.use('/pacientes', pacientesRouter);
+const internacionesRouter = require('./routes/internaciones');
 app.use('/internaciones', internacionesRouter);
+
+
+
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {

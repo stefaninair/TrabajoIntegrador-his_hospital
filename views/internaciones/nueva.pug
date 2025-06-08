@@ -4,32 +4,254 @@ block content
   h1 Internar paciente #{paciente.nombre} #{paciente.apellido}
 
   form(action=`/internaciones/nueva/${paciente.id}`, method="POST")
-    label(for="motivo") Motivo de internación:
+    label(for="motivo") Tipo de internación:
     select#motivo(name="motivo", required onchange="mostrarCamposAdicionales(this.value)")
       option(value="") -- Seleccione --
+      option(value="maternidad") Maternidad
       option(value="cirugia") Cirugía programada
       option(value="derivacion") Derivación médica
-      option(value="emergencia") Emergencia
-    br
+      option(value="urgencia") Urgencia
 
-    div#campos-cirugia(style="display:none; margin-top:10px; padding:10px; border:1px solid #ccc; border-radius:5px;")
-      h3 Información adicional para cirugía
-      label(for="preoperatorios") Preoperatorios:
-      input(type="text", name="preoperatorios", placeholder="Ej: Laboratorio, ECG")
-      br
-      label(for="autorizaciones") Autorizaciones médicas:
-      input(type="text", name="autorizaciones", placeholder="Autorización de obra social")
-      br
-      label(for="documentacion") Documentación:
-      input(type="text", name="documentacion", placeholder="Fotocopia de DNI, etc.")
-      br
+    // Maternidad
+    div#campos-maternidad(style="display:none; margin-top:10px;")
+      h3 Maternidad
 
-    br
-    label(for="id_cama") Seleccionar cama disponible:
-    select(name="id_cama", required)
-      option(value="") -- Seleccionar cama --
-      each cama in camas
-        option(value=cama.id)= `Hab. ${cama.numero_habitacion} - Cama ${cama.numero_cama}`
+      div
+        label Semanas de gestación:
+        div(style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;")
+          - for (let i = 1; i <= 36; i++)
+            label(style="width: 45px;")
+              input(type="radio", name="semanas_gestacion", value=i required)
+              | #{i}
+
+      div
+        label Antecedentes médicos:
+        each antecedente in ["Hipertensión", "Diabetes gestacional", "Preeclampsia", "Parto prematuro"]
+          div
+            label
+              input(type="checkbox", name="antecedentes_medicos", value=antecedente)
+              | #{antecedente}
+
+      div
+        label Grupo sanguíneo:
+        select(name="grupo_sanguineo")
+          option(value="") --
+          option(value="A") A
+          option(value="B") B
+          option(value="AB") AB
+          option(value="O") O
+
+      div
+        label Factor RH:
+        select(name="factor_rh")
+          option(value="") --
+          option(value="Positivo") Positivo
+          option(value="Negativo") Negativo
+
+      div
+        label Resultados de estudios:
+        select(name="resultados_estudios")
+          option(value="") --
+          option(value="Valores normales") Valores normales
+          option(value="Medios") Medios
+          option(value="A analizar") A analizar
+        span(style="margin-left: 10px; font-size: 18px;") 📎 Adjuntar (visual)
+
+      div
+        label Nombre del obstetra:
+        select(name="nombre_obstetra")
+          option(value="") --
+          option(value="Dra. Suárez") Dra. Suárez
+          option(value="Dr. Gómez") Dr. Gómez
+          option(value="Dra. Ramírez") Dra. Ramírez
+          option(value="Dr. López") Dr. López
+          option(value="Dra. Villalba") Dra. Villalba
+
+      div
+        label Nombre del acompañante:
+        input(type="text", name="nombre_acompanante")
+
+      div
+        label Parentesco:
+        select(name="parentesco_acompanante")
+          option(value="") --
+          option(value="Hermano") Hermano
+          option(value="Padre") Padre
+          option(value="Madre") Madre
+          option(value="Pareja") Pareja
+          option(value="Familiar") Familiar
+
+    // Cirugía
+    div#campos-cirugia(style="display:none; margin-top:10px;")
+      h3 Cirugía Programada
+
+      div
+        label Autorización:
+        select(name="autorizacion_cirugia")
+          option(value="") --
+          option(value="Aprobada") Aprobada
+          option(value="Denegada") Denegada
+          option(value="En proceso") En proceso
+
+      div
+        label Historia clínica:
+        select(name="historia_clinica")
+          option(value="") --
+          option(value="Existente") Existente
+          option(value="No existente") No existente
+
+      div
+        label Medicación actual:
+        select(name="medicamentos_actuales")
+          option(value="") --
+          option(value="Antibióticos") Antibióticos
+          option(value="Analgésicos") Analgésicos
+          option(value="Antiinflamatorios") Antiinflamatorios
+          option(value="Anticoagulantes") Anticoagulantes
+          option(value="Hipertensión + Tiroides") Hipertensión + Tiroides
+
+      div
+        label Preoperatorios realizados:
+        select(name="preoperatorios")
+          option(value="") --
+          option(value="Electrocardiograma, análisis, ecografía") Electrocardiograma, análisis, ecografía
+          option(value="Electrocardiograma, resonancia") Electrocardiograma, resonancia
+          option(value="Electrocardiograma, estudios específicos") Electrocardiograma, estudios específicos
+
+      div
+        label Resultados de estudios:
+        select(name="resultados_estudios_cirugia")
+          option(value="") --
+          option(value="Valores normales") Valores normales
+          option(value="Medios") Medios
+          option(value="A analizar") A analizar
+        span(style="margin-left: 10px; font-size: 18px;") 📎 Adjuntar (visual)
+
+      div
+        label Nombre del cirujano:
+        select(name="nombre_cirujano")
+          option(value="") --
+          option(value="Dr. Quiroga") Dr. Quiroga
+          option(value="Dra. Fernández") Dra. Fernández
+          option(value="Dr. Martínez") Dr. Martínez
+          option(value="Dra. López") Dra. López
+          option(value="Dr. Torres") Dr. Torres
+
+      div
+        label Diagnóstico médico:
+        select(name="diagnostico_medico")
+          option(value="") --
+          option(value="Colecistitis aguda") Colecistitis aguda
+          option(value="Hernia inguinal") Hernia inguinal
+          option(value="Apendicitis aguda") Apendicitis aguda
+          option(value="Cáncer de colon") Cáncer de colon
+          option(value="Obstrucción intestinal") Obstrucción intestinal
+
+      div
+        label Tipo de intervención:
+        select(name="tipo_intervencion_quirurgica")
+          option(value="") --
+          option(value="Laparoscópica") Laparoscópica
+          option(value="Convencional") Convencional
+          option(value="Ambulatoria") Ambulatoria
+          option(value="Emergente") Emergente
+          option(value="Exploratoria") Exploratoria
+          option(value="Programada") Programada
+
+    // Derivación médica
+    div#campos-derivacion(style="display:none; margin-top:10px;")
+      h3 Derivación Médica
+
+      div
+        label Nombre del médico derivante:
+        select(name="nombre_medico_derivante")
+          option(value="") --
+          option(value="Dr. Núñez") Dr. Núñez
+          option(value="Dra. Sosa") Dra. Sosa
+          option(value="Dr. Pereyra") Dr. Pereyra
+          option(value="Dra. Mendoza") Dra. Mendoza
+
+      div
+        label Especialidad del médico:
+        select(name="especialidad_medico_derivante")
+          option(value="") --
+          option(value="Clínico") Clínico
+          option(value="Ginecología") Ginecología
+          option(value="Cardiología") Cardiología
+          option(value="Neurología") Neurología
+          option(value="Pediatría") Pediatría
+
+      div
+        label Diagnóstico:
+        textarea(name="diagnostico_derivacion")
+
+      div
+        label Tratamiento inicial:
+        select(name="tratamiento_inicial")
+          option(value="") --
+          option(value="Ninguno") Ninguno
+          option(value="Medicación") Medicación
+          option(value="Sueroterapia") Sueroterapia
+          option(value="Contención") Contención
+
+      div
+        label Resultados de estudios:
+        select(name="resultados_estudios_origen")
+          option(value="") --
+          option(value="Valores normales") Valores normales
+          option(value="Medios") Medios
+          option(value="A analizar") A analizar
+        span(style="margin-left: 10px; font-size: 18px;") 📎 Adjuntar (visual)
+
+    // Urgencia
+    div#campos-urgencia(style="display:none; margin-top:10px;")
+      h3 Urgencia
+
+      div
+        label Modo de llegada:
+        select(name="modo_llegada")
+          option(value="") --
+          option(value="Ambulancia") Ambulancia
+          option(value="Particular") Vehículo particular
+          option(value="Policía") Policía
+          option(value="Peatón") Peatón
+
+      div
+        label Síntomas al ingreso:
+        textarea(name="sintomas_al_ingreso")
+
+      div
+        label Signos vitales:
+        select(name="signos_vitales_ingreso")
+          option(value="") --
+          option(value="Estables") Estables
+          option(value="Inestables") Inestables
+          option(value="Críticos") Críticos
+
+      div
+        label Estado de conciencia:
+        select(name="nivel_conciencia")
+          option(value="") --
+          option(value="Lúcido") Lúcido
+          option(value="Confuso") Confuso
+          option(value="Inconsciente") Inconsciente
+
+      div
+        label Primeras intervenciones:
+        each intervencion in ["RCP", "Oxígeno", "Sueroterapia", "Sedación"]
+          div
+            label
+              input(type="checkbox", name="primeras_intervenciones", value=intervencion)
+              | #{intervencion}
+
+      div
+        label Médico que atendió:
+        select(name="nombre_medico_urgencias")
+          option(value="") --
+          option(value="Dr. Medina") Dr. Medina
+          option(value="Dra. Ayala") Dra. Ayala
+          option(value="Dr. Santillán") Dr. Santillán
+          option(value="Dra. Herrera") Dra. Herrera
 
     br
     button(type="submit" style="margin-top: 15px; padding: 8px 16px;") Confirmar Internación
@@ -38,5 +260,8 @@ block content
 
   script.
     function mostrarCamposAdicionales(valor) {
-      document.getElementById("campos-cirugia").style.display = (valor === "cirugia") ? "block" : "none";
+      document.getElementById("campos-maternidad").style.display = valor === "maternidad" ? "block" : "none";
+      document.getElementById("campos-cirugia").style.display = valor === "cirugia" ? "block" : "none";
+      document.getElementById("campos-derivacion").style.display = valor === "derivacion" ? "block" : "none";
+      document.getElementById("campos-urgencia").style.display = valor === "urgencia" ? "block" : "none";
     }
