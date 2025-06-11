@@ -1,69 +1,253 @@
 extends ../layout
 
 block content
-  h1 Registro de Nuevo Paciente
+  // Main container with margin and a Bootstrap card for design
+  .container.my-5
+    .card.shadow-lg.mx-auto.border-0.rounded-4(style="max-width: 800px;")
+      .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
+        h1.mb-0.display-5 Registro de Nuevo Paciente
 
-  form(action="/pacientes/nuevo", method="POST")
-    div
-      label DNI:
-      input(type='text', name='dni', value=dni, required)
-      if errores && errores.dni
-        div(style="color:red; font-size:0.9em")= errores.dni
+      .card-body.p-5
+        // Form with Bootstrap classes and client-side validation setup
+        form#formPaciente(action="/pacientes/nuevo", method="POST", novalidate)
+          .row.g-3 
 
-    div
-      label Apellido:
-      input(type='text', name='apellido', value=apellido, required)
-      if errores && errores.apellido
-        div(style="color:red; font-size:0.9em")= errores.apellido
+            // DNI Field - Con pattern para solo números
+            .col-12.col-md-6.form-floating
+              input.form-control(
+                type='text',
+                name='dni',
+                id='dni',
+                placeholder='DNI',
+                value=dni || '',
+                required,
+                pattern='^\\d+$', // Solo números
+                title='El DNI debe contener solo números.',
+                class=(errores && errores.dni ? 'is-invalid' : '')
+              )
+              label(for='dni') DNI
+              if errores && errores.dni
+                .invalid-feedback= errores.dni
 
-    div
-      label Nombre:
-      input(type='text', name='nombre', value=nombre, required)
-      if errores && errores.nombre
-        div(style="color:red; font-size:0.9em")= errores.nombre
+            // Fecha de nacimiento Field
+            .col-12.col-md-6.form-floating
+              input.form-control(
+                type='date',
+                name='fecha_nacimiento',
+                id='fecha_nacimiento',
+                placeholder='Fecha de nacimiento',
+                value=fecha_nacimiento || '',
+                required,
+                class=(errores && errores.fecha_nacimiento ? 'is-invalid' : '')
+              )
+              label(for='fecha_nacimiento') Fecha de nacimiento
+              if errores && errores.fecha_nacimiento
+                .invalid-feedback= errores.fecha_nacimiento
 
-    div
-      label Teléfono:
-      input(type='text', name='telefono', value=telefono)
+            // Nombre Field
+            .col-md-6.form-floating
+              input.form-control(
+                type='text',
+                name='nombre',
+                id='nombre',
+                placeholder='Nombre',
+                value=nombre || '',
+                required,
+                class=(errores && errores.nombre ? 'is-invalid' : '')
+              )
+              label(for='nombre') Nombre
+              if errores && errores.nombre
+                .invalid-feedback= errores.nombre
 
-    div  
-      label Correo electrónico:
-      input(type='email', name='correo', value=correo)
-      if errores && errores.correo
-        div(style="color:red; font-size:0.9em")= errores.correo
+            // Apellido Field
+            .col-md-6.form-floating
+              input.form-control(
+                type='text',
+                name='apellido',
+                id='apellido',
+                placeholder='Apellido',
+                value=apellido || '',
+                required,
+                class=(errores && errores.apellido ? 'is-invalid' : '')
+              )
+              label(for='apellido') Apellido
+              if errores && errores.apellido
+                .invalid-feedback= errores.apellido
+            
+            // Correo electrónico Field
+            .col-md-6.form-floating
+              input.form-control(
+                type='email', 
+                name='correo',
+                id='correo',
+                placeholder='Correo electrónico',
+                value=correo || '',
+                class=(errores && errores.correo ? 'is-invalid' : '')
+              )
+              label(for='correo') Correo electrónico
+              if errores && errores.correo
+                .invalid-feedback= errores.correo
 
-    div
-      label Fecha de nacimiento:
-      input(type='date', name='fecha_nacimiento', value=fecha_nacimiento, required)
-      if errores && errores.fecha_nacimiento
-        div(style="color:red; font-size:0.9em")= errores.fecha_nacimiento
+            // Dirección Field
+            .col-md-6.form-floating
+              input.form-control(
+                type='text',
+                name='direccion',
+                id='direccion',
+                placeholder='Dirección',
+                value=direccion || ''
+              )
+              label(for='direccion') Dirección
 
-    div
-      label Género:
-      select(name='sexo', required)
-        option(value='') Seleccionar...
-        option(value='M', selected=sexo==='M') M
-        option(value='F', selected=sexo==='F') F
-      if errores && errores.sexo
-        div(style="color:red; font-size:0.9em")= errores.sexo
+            // Teléfono Field
+            .col-md-6.form-floating
+              input.form-control(
+                type='text',
+                name='telefono',
+                id='telefono',
+                placeholder='Teléfono',
+                value=telefono || ''
+              )
+              label(for='telefono') Teléfono
 
-    div
-      label Dirección:
-      input(type='text', name='direccion', value=direccion)
+            // Género Field
+            .col-md-6
+              label.form-label(for='sexo').text-white Género:
+              select.form-select(
+                name='sexo',
+                id='sexo',
+                required,
+                class=(errores && errores.sexo ? 'is-invalid' : '')
+              )
+                option(value='') Seleccionar...
+                option(value='M', selected=sexo==='M') Masculino
+                option(value='F', selected=sexo==='F') Femenino
+              if errores && errores.sexo
+                .invalid-feedback= errores.sexo
 
-    div
-      label Seguro Médico:
-      select(name='id_seguro', required)
-        option(value='') Seleccionar...
-        each seguro in seguros
-          option(value=seguro.id, selected=id_seguro==seguro.id)= seguro.nombre
-      if errores && errores.id_seguro
-        div(style="color:red; font-size:0.9em")= errores.id_seguro
+            // Seguro Médico Field (Obligatorio)
+            .col-md-6
+              label.form-label(for='id_seguro').text-white Seguro Médico:
+              select.form-select(
+                name='id_seguro',
+                id='id_seguro',
+                required,
+                class=(errores && errores.id_seguro ? 'is-invalid' : '')
+              ) 
+                option(value='') Seleccionar...
+                each seguro in seguros
+                  option(value=seguro.id, selected=id_seguro==seguro.id)= seguro.nombre
+              if errores && errores.id_seguro
+                .invalid-feedback= errores.id_seguro
 
-    div
-      label Número de Afiliado:
-      input(type='text', name='nro_afiliado', value=nro_afiliado)
+            // Número de Afiliado Field (Validación condicional en JS/Backend)
+            .col-md-6.form-floating
+              input.form-control(
+                type='text',
+                name='nro_afiliado',
+                id='nro_afiliado',
+                placeholder='Número de Afiliado',
+                value=nro_afiliado || ''
+              )
+              label(for='nro_afiliado') Número de Afiliado
+              if errores && errores.nro_afiliado
+                .invalid-feedback= errores.nro_afiliado
 
-    div(style="margin-top: 20px")
-      a(href='/pacientes', style="margin-right: 10px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") ← Volver
-      button(type='submit', style="padding: 8px 16px; background:#2196F3; color:white; border:none; border-radius:4px;") 💾 Guardar Paciente
+          // Messages (Success/Error)
+          if mensajeExito
+            .alert.alert-success.mt-4.text-center= mensajeExito
+          if errores && Object.keys(errores).length > 0 && !errores.general
+            .alert.alert-danger.mt-4
+              ul.mb-0
+                each val, key in errores
+                  li= val
+          if errores && errores.general
+            .alert.alert-danger.mt-4.text-center= errores.general
+
+          // Buttons section
+          .d-flex.justify-content-center.gap-3.pt-4.mt-4.border-top
+            a(href='/pacientes').btn.btn-secondary.btn-lg.rounded-pill
+              i.bi.bi-arrow-left-circle.me-2
+              | Volver
+            button(type='submit').btn.btn-primary.btn-lg.rounded-pill 💾 Guardar Paciente
+
+  // Client-side validation script
+  script.
+    (function () {
+      'use strict'
+
+      const form = document.getElementById('formPaciente');
+      const idSeguroInput = document.getElementById('id_seguro');
+      const nroAfiliadoInput = document.getElementById('nro_afiliado');
+
+      function clearNroAfiliadoValidation() {
+          nroAfiliadoInput.classList.remove('is-invalid', 'is-valid');
+          const existingFeedback = nroAfiliadoInput.parentNode.querySelector('.invalid-feedback');
+          if (existingFeedback) {
+              existingFeedback.remove();
+          }
+      }
+
+      idSeguroInput.addEventListener('change', function() {
+          clearNroAfiliadoValidation();
+          validateNroAfiliado();
+      });
+
+      nroAfiliadoInput.addEventListener('input', function() {
+          clearNroAfiliadoValidation();
+          validateNroAfiliado();
+      });
+
+      function validateNroAfiliado() {
+          const selectedSeguroId = idSeguroInput.value;
+          const nroAfiliadoValue = nroAfiliadoInput.value.trim();
+          
+          // IMPORTANTE: AJUSTA ESTE VALOR AL ID REAL de 'Particular' en tu base de datos
+          const PARTICULAR_ID = '1'; 
+
+          if (selectedSeguroId && selectedSeguroId !== '' && selectedSeguroId !== PARTICULAR_ID) {
+              if (!nroAfiliadoValue) {
+                  nroAfiliadoInput.classList.add('is-invalid');
+                  let feedbackDiv = nroAfiliadoInput.parentNode.querySelector('.invalid-feedback');
+                  if (!feedbackDiv) {
+                      feedbackDiv = document.createElement('div');
+                      feedbackDiv.classList.add('invalid-feedback');
+                      nroAfiliadoInput.parentNode.appendChild(feedbackDiv);
+                  }
+                  feedbackDiv.textContent = 'El número de afiliado es obligatorio para este seguro.';
+                  return false;
+              } else if (!/^\d{6}$/.test(nroAfiliadoValue)) { // <--- Validación de 6 números
+                  nroAfiliadoInput.classList.add('is-invalid');
+                  let feedbackDiv = nroAfiliadoInput.parentNode.querySelector('.invalid-feedback');
+                  if (!feedbackDiv) {
+                      feedbackDiv = document.createElement('div');
+                      feedbackDiv.classList.add('invalid-feedback');
+                      nroAfiliadoInput.parentNode.appendChild(feedbackDiv);
+                  }
+                  feedbackDiv.textContent = 'El número de afiliado debe contener exactamente 6 números.';
+                  return false;
+              } else {
+                  nroAfiliadoInput.classList.add('is-valid'); 
+              }
+          } else {
+              clearNroAfiliadoValidation();
+          }
+          return true;
+      }
+
+      form.addEventListener('submit', function (event) {
+        let formIsValid = form.checkValidity();
+        let nroAfiliadoIsValid = validateNroAfiliado();
+
+        if (!formIsValid || !nroAfiliadoIsValid) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false)
+
+      document.addEventListener('DOMContentLoaded', function() {
+          validateNroAfiliado();
+      });
+    })()
+    

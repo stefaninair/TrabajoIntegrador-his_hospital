@@ -1,47 +1,152 @@
 extends ../layout
 
 block content
-  //- Botón volver al inicio (MOVIDO AQUÍ)
-  a(href='/', style="display:inline-block; margin-bottom: 20px; padding: 8px 16px; background:#ccc; color:black; text-decoration:none; border-radius:4px;") Inicio HIS Hospital
+  .container.my-5
+    // Mensajes de éxito o error (para eliminación o creación)
+    // Se agregaron las clases dismissible para que los mensajes se puedan cerrar
+    if errorEliminar
+      div(class="alert alert-danger alert-dismissible fade show text-center my-3 animate__animated animate__fadeIn" role="alert")
+        = errorEliminar
+        button(type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close")
+    if mensajeExito
+      div(class="alert alert-success alert-dismissible fade show text-center my-3 animate__animated animate__fadeIn" role="alert")
+        = mensajeExito
+        button(type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close")
 
-  h1 Lista de Pacientes
+    .card.shadow-lg.mx-auto.border-0.rounded-4
+      .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
+        h1.mb-0.display-5 Gestor de Pacientes
 
-  //- Contenedor para centrar el buscador y el botón de nuevo paciente
-  div(style="text-align: center; margin-bottom: 20px;")
-    input#buscadorDNI(type='text', placeholder='Buscar paciente por DNI...', style="padding:10px; width: 350px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; vertical-align: middle;")
-    a(href='/pacientes/nuevo', style="display:inline-block; margin-left: 20px; padding: 10px 20px; background:#4CAF50; color:white; text-decoration:none; border-radius:4px; font-size: 16px; vertical-align: middle;") ➕ Nuevo Paciente
+      .card-body.p-4
+        .d-flex.justify-content-between.align-items-center.mb-4
+          // Buscador por DNI o Nombre
+          .input-group.w-50
+            input#searchInput.form-control.rounded-pill(type='text', placeholder='Buscar paciente por DNI, nombre o apellido...')
+            button.btn.btn-outline-secondary.rounded-pill.ms-2(type='button')
+              i.bi.bi-search 
 
-  //- Contenedor para centrar la tabla
-  div(style="display: flex; justify-content: center;") 
-    //- Tabla de pacientes
-    table#tablaPacientes(border='1', style="margin-top: 10px; width: auto; border-collapse: separate; border-spacing: 2px; border: 3px double black;")
-      thead
-        tr
-          th(style="padding: 8px; border: 1px solid #ddd;") N° de DNI
-          th(style="padding: 8px; border: 1px solid #ddd;") Nombre y Apellido
-          th(style="padding: 8px; border: 1px solid #ddd;") Acciones 
-      tbody
-        each paciente in pacientes
-          tr
-            td.dni(style="padding: 8px; border: 1px solid #ddd;")= paciente.dni
-            td(style="padding: 8px; border: 1px solid #ddd;")
-              a(href=`/pacientes/editar/${paciente.id}`, style="text-decoration:none; color: #007bff; font-weight: bold;")
-                = `${paciente.apellido}, ${paciente.nombre}`
-            td
-              form(action=`/pacientes/eliminar/${paciente.id}`, method='POST', style=style="padding: 8px; border: 1px solid #ddd;")
-                button(type='submit', onclick='return confirm("¿Eliminar este paciente?")', style='border:none; background:none; cursor:pointer; font-size: 18px; color: red;')
-                  | 🗑
-              
-      //- Script para filtrar en tiempo real
-  script.
-    const input = document.getElementById('buscadorDNI');
-    const filas = document.querySelectorAll('#tablaPacientes tbody tr');
+          // **AQUÍ ESTÁ LA MODIFICACIÓN: BOTONES DE ACCIÓN (Nuevo Paciente y Emergencia)**
+          div.d-flex 
+            // Botón de Nuevo Paciente
+            a(href='/pacientes/nuevo').btn.btn-success.btn-lg.rounded-pill.shadow-sm.me-2 
+              i.bi.bi-person-plus-fill.me-2 
+              | Nuevo Paciente
 
-    input.addEventListener('input', () => {
-      const filtro = input.value.trim().toLowerCase();
+            // **BOTÓN DE EMERGENCIA: Idéntico estilo al de Nuevo Paciente, pero rojo y con icono de ambulancia**
+            a(href='/internaciones/nueva').btn.btn-danger.btn-lg.rounded-pill.shadow-sm.me-2
+              i.bi.bi-clipboard-pulse.me-2
+              | Emergencia
+          // FIN DE LA MODIFICACIÓN
 
-      filas.forEach(fila => {
-        const dni = fila.querySelector('.dni').textContent.toLowerCase();
-        fila.style.display = dni.includes(filtro) ? '' : 'none';
+        .table-responsive.shadow-sm.rounded-3.overflow-hidden
+          table.table.table-hover.table-striped.align-middle.mb-0#pacientesTable
+            thead.table-dark
+              tr
+                th DNI
+                th Apellido, Nombre
+                th Genero
+                th Teléfono
+                th Correo
+                th Seguro Médico
+                th Nro. Afiliado
+                th Acciones
+            tbody#pacientesTableBody
+              each paciente in pacientes
+                tr
+                  td= paciente.dni
+                  td
+                    a(href='/pacientes/editar/' + paciente.id).text-decoration-none.fw-bold= paciente.nombre_completo
+                  td= paciente.sexo
+                  td= paciente.telefono || '-'
+                  td= paciente.correo || '-'
+                  td= paciente.nombre_seguro || 'N/A'
+                  td= paciente.nro_afiliado || '-'
+                  td
+                    .d-flex.justify-content-center
+                      a(href='/pacientes/editar/' + paciente.id).btn.btn-sm.btn-info.text-white.rounded-circle.shadow-sm(data-bs-toggle='tooltip', title='Editar Paciente')
+                        i.bi.bi-pencil-square 
+                      // Si quieres un botón de eliminar visible en la tabla con icono
+                      // button(type="button" class="btn btn-sm btn-danger text-white rounded-circle shadow-sm ms-2" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id=paciente.id data-dni=paciente.dni title="Eliminar Paciente")
+                      //   i.bi.bi-trash
+
+              else
+                tr
+                  td(colspan="8").text-center.py-4
+                    p.lead.text-muted No hay pacientes registrados.
+                    p.text-muted Haz clic en "Nuevo Paciente" para comenzar.
+
+    // Script para inicializar Tooltips y la búsqueda en tiempo real
+    script.
+      document.addEventListener('DOMContentLoaded', function () {
+        // Inicializar Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Lógica de Búsqueda en Tiempo Real
+        const searchInput = document.getElementById('searchInput');
+        const pacientesTableBody = document.getElementById('pacientesTableBody');
+
+        searchInput.addEventListener('keyup', async function() {
+          const searchTerm = this.value;
+          try {
+            // Realiza una petición AJAX al servidor
+            const response = await fetch(`/api/pacientes/buscar?term=${encodeURIComponent(searchTerm)}`);
+            const pacientes = await response.json();
+
+            pacientesTableBody.innerHTML = ''; // Limpia el cuerpo de la tabla actual
+
+            if (pacientes.length > 0) {
+              // Si hay resultados, construye las filas
+              pacientes.forEach(paciente => {
+                const row = `
+                  <tr>
+                    <td>${paciente.dni}</td>
+                    <td><a href="/pacientes/editar/${paciente.id}" class="text-decoration-none fw-bold">${paciente.nombre_completo}</a></td>
+                    <td>${paciente.sexo}</td>
+                    <td>${paciente.telefono || '-'}</td>
+                    <td>${paciente.correo || '-'}</td>
+                    <td>${paciente.nombre_seguro || 'N/A'}</td>
+                    <td>${paciente.nro_afiliado || '-'}</td>
+                    <td>
+                      <div class="d-flex justify-content-center">
+                        <a href="/pacientes/editar/${paciente.id}" class="btn btn-sm btn-info text-white rounded-circle shadow-sm" data-bs-toggle="tooltip" title="Editar Paciente">
+                          <i class="bi bi-pencil-square"></i>
+                        </a>
+                        </div>
+                    </td>
+                  </tr>
+                `;
+                pacientesTableBody.insertAdjacentHTML('beforeend', row); // Añade la nueva fila
+              });
+            } else {
+              // Si no hay resultados, muestra un mensaje
+              pacientesTableBody.innerHTML = `
+                <tr>
+                  <td colspan="8" class="text-center py-4">
+                    <p class="lead text-muted">No se encontraron pacientes que coincidan con la búsqueda.</p>
+                  </td>
+                </tr>
+              `;
+            }
+
+            // Re-inicializa los tooltips para los nuevos elementos (si los hay)
+            var newTooltipTriggerList = [].slice.call(pacientesTableBody.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            newTooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+          } catch (error) {
+            console.error('Error al buscar pacientes:', error);
+            // Opcional: mostrar un mensaje de error al usuario
+            pacientesTableBody.innerHTML = `
+              <tr>
+                <td colspan="8" class="text-center py-4 text-danger">
+                  <p>Error al cargar pacientes. Inténtalo de nuevo más tarde.</p>
+                </td>
+              </tr>
+            `;
+          }
+        });
       });
-    });
