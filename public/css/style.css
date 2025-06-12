@@ -1,0 +1,56 @@
+/* public/css/style.css */
+
+/* Estilo para las tarjetas de cama */
+.cama-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90px; /* Ancho fijo para las tarjetas de cama */
+  height: 90px; /* Altura fija para las tarjetas de cama */
+  border: 2px solid; /* Borde para el color del estado */
+  transition: all 0.2s ease-in-out; /* Transición suave al interactuar */
+}
+
+/* Estilo para cama seleccionable al pasar el ratón */
+.cama-selectable:hover {
+  transform: translateY(-3px); /* Pequeño efecto de elevación */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra al pasar el ratón */
+}
+
+/* Estilo para la cama seleccionada */
+.selected-cama {
+  border-color: #0d6efd !important; /* Color primario de Bootstrap (azul) */
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important; /* Resplandor azul de selección */
+  transform: scale(1.05); /* Ligeramente más grande al ser seleccionada */
+}
+
+/* Ajustes para el ícono de "Adjuntar" en el input-group (para que quede centrado si es necesario) */
+.input-group-text i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em; /* Asegura que el ícono tenga un ancho fijo */
+}
+
+/* Ajustes para los iconos de las cards de cama */
+.cama-badge .bi {
+  font-size: 1.8rem !important; /* Aumentar el tamaño del ícono */
+}
+
+/* Asegurar que las tarjetas de habitación sean visibles */
+.card[data-habitacion-id] {
+    cursor: default !important; /* No son clicables en sí mismas para seleccionar, solo sus camas */
+}
+
+/* Eliminar el borde de resaltado de las tarjetas de habitación si se estaba usando */
+.card.border-success, .card.border-primary {
+    border-width: 1px !important; /* Restablecer el borde predeterminado */
+}
+
+/* Aumentar la visibilidad de los badges de camas en el card-body */
+.card-body > .d-flex.flex-wrap.gap-2 {
+    min-height: 100px; /* Asegurar espacio mínimo para las camas */
+    align-items: center;
+    justify-content: center;
+}

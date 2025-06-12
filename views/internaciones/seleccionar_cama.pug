@@ -1,5 +1,40 @@
 extends ../layout
 
 block content
-  h1 Seleccionar Cama para 
+  .container.my-5
+    .card.shadow-lg.mx-auto.border-0.rounded-4(style="max-width: 1000px;")
+      .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
+        h1.mb-0.display-5 Asignar Cama a Paciente #{paciente.nombre} #{paciente.apellido}
 
+      .card-body.p-5
+        form#seleccionarCamaForm(action=`/internaciones/finalizar-internacion/${paciente.id}`, method="POST")
+
+          .mb-4
+            label.form-label(for="ala") Seleccione Ala:
+            select#ala.form-select(name="id_ala", required)
+              option(value="") -- Seleccione un Ala --
+              each ala in alas
+                option(value=ala.id) #{ala.nombre}
+
+          // Contenedor para las tarjetas de Habitaciones (ahora las camas irán dentro de estas)
+          #habitaciones-container.row.mt-4.g-3
+            // Aquí se cargarán dinámicamente las tarjetas de habitaciones con sus camas
+
+          // Campo oculto para almacenar el ID de la cama seleccionada
+          input(type="hidden", name="id_cama", id="selected_cama_id", required)
+
+          br
+
+          .d-flex.justify-content-between.gap-3.pt-4.mt-4.border-top
+            a(href=`/internaciones/nueva/${paciente.id}`).btn.btn-secondary.btn-lg.rounded-pill
+              i.bi.bi-arrow-left-circle.me-2
+              | ← Volver al Formulario
+            button(type="submit").btn.btn-primary.btn-lg.rounded-pill(disabled)#btn-finalizar-internacion
+              i.bi.bi-check-circle.me-2
+              | Finalizar Internación
+
+block scripts
+  script(src="/js/internaciones.js")
+
+  script.
+    const pacienteSexo = "#{paciente.sexo}"; 

@@ -8,6 +8,7 @@ html(lang="es")
     link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css")
     // Animate.css
     link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css")
+    link(rel="stylesheet", href="/css/style.css")
     style.
       body {
         background-image: url('/img/fondo-hospital.png'); /* Asegúrate de que esta ruta sea correcta */
@@ -21,10 +22,10 @@ html(lang="es")
         align-items: center; /* Centra el contenido horizontalmente */
         margin: 0;
         color: #fff; /* Color de texto blanco para contrastar con el fondo oscuro */
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra para mejor lectura del texto */
+        
       }
       .main-content {
-        background-color: rgba(0, 0, 0, 0.5); /* Aumento la transparencia a 0.5 (antes 0.75) */
+        background-color: rgba(0, 0, 0, 0.1); /* Aumento la transparencia a 0.5 (antes 0.75) */
         padding: 0px;
         border-radius: 10px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
@@ -33,7 +34,7 @@ html(lang="es")
         text-align: center;
       }
       .card {
-        background-color: rgba(0, 0, 0, 0.5); /* Mantengo la opacidad de las tarjetas internas para buena legibilidad */
+        background-color: rgba(0, 0, 0, 0.77); /* Mantengo la opacidad de las tarjetas internas para buena legibilidad */
         padding: 0px;
         border: none;
       }
@@ -76,7 +77,7 @@ html(lang="es")
         color: white; /* Texto blanco para el botón */
         padding: 15px 30px;
         font-size: 1.25rem;
-        border-radius: 8px;
+        border-radius: 1px;
         transition: all 0.3s ease;
       }
       .btn-primary:hover {
@@ -87,17 +88,17 @@ html(lang="es")
       }
       /* Cuidado: Reutilizando .btn-success y .text-success para rojo */
       .btn-success { /* Este es ahora el botón de Emergencia (Rojo) */
-        background-color:rgba(30, 255, 0, 0.6); /* Rojo más intenso (Material Design red 700) */
-        border-color:rgb(0, 0, 0);
+        background-color: #0056b3; /* Rojo más intenso (Material Design red 700) */
+        border-color:rgb(5, 65, 129);
         color: white;
         padding: 15px 30px;
         font-size: 1.25rem;
-        border-radius: 8px;
+        border-radius: 1px;
         transition: all 0.3s ease;
       }
       .btn-success:hover {
-        background-color:rgb(23, 102, 7); /* Rojo aún más oscuro al pasar el mouse (Material Design red 900) */
-        border-color:rgba(0, 182, 24, 0.77);
+        background-color:rgb(4, 105, 212); /* Rojo aún más oscuro al pasar el mouse (Material Design red 900) */
+        border-color:rgb(20, 115, 216);
         transform: translateY(-3px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
       }
@@ -108,6 +109,7 @@ html(lang="es")
       .text-success { /* Este es ahora el ícono de Emergencia (Rojo) */
         color: #D32F2F !important; /* Rojo intenso para el ícono de Emergencia */
       }
+      
 
   body
     .main-content

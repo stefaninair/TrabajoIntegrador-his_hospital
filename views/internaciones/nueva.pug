@@ -19,262 +19,267 @@ block content
 
           div#campos-maternidad(style="display:none;").mt-4
             h3.text-primary.mb-3 Maternidad
-
-            .mb-3
-              label.form-label Semanas de gestación:
-              .d-flex.flex-wrap.gap-2
-                - for (let i = 1; i <= 36; i++)
-                  label.form-check.form-check-inline
-                    input.form-check-input(type="radio", name="semanas_gestacion", value=i required)
-                    | #{i}
-
-            .mb-3
-              label.form-label Antecedentes médicos:
-              .d-flex.flex-wrap.gap-3
-                each antecedente in ["Hipertensión", "Diabetes gestacional", "Preeclampsia", "Parto prematuro"]
-                  div.form-check.form-check-inline
-                    label.form-check-label
-                      input.form-check-input(type="checkbox", name="antecedentes_medicos", value=antecedente)
-                      | #{antecedente}
-
-            .mb-3
-              label.form-label Grupo sanguíneo:
-              select.form-select(name="grupo_sanguineo")
-                option(value="") --
-                option(value="A") A
-                option(value="B") B
-                option(value="AB") AB
-                option(value="O") O
-
-            .mb-3
-              label.form-label Factor RH:
-              select.form-select(name="factor_rh")
-                option(value="") --
-                option(value="Positivo") Positivo
-                option(value="Negativo") Negativo
-
-            .mb-3
-              label.form-label Resultados de estudios:
-              .input-group
-                select.form-select(name="resultados_estudios")
-                  option(value="") --
-                  option(value="Valores normales") Valores normales
-                  option(value="Medios") Medios
-                  option(value="A analizar") A analizar
-                span.input-group-text
-                  i.bi.bi-paperclip.me-2
-                  | Adjuntar
-
-            .mb-3
-              label.form-label Nombre del obstetra:
-              select.form-select(name="nombre_obstetra")
-                option(value="") --
-                option(value="Dra. Suárez") Dra. Suárez
-                option(value="Dr. Gómez") Dr. Gómez
-                option(value="Dra. Ramírez") Dra. Ramírez
-                option(value="Dr. López") Dr. López
-                option(value="Dra. Villalba") Dra. Villalba
-
-            .mb-3
-              label.form-label Nombre del acompañante:
-              input.form-control(type="text", name="nombre_acompanante")
-
-            .mb-3
-              label.form-label Parentesco:
-              select.form-select(name="parentesco_acompanante")
-                option(value="") --
-                option(value="Hermano") Hermano
-                option(value="Padre") Padre
-                option(value="Madre") Madre
-                option(value="Pareja") Pareja
-                option(value="Familiar") Familiar
+            .row
+              .col-md-12
+                .mb-3
+                  label.form-label Semanas de gestación:
+                  .d-flex.flex-wrap.gap-2
+                    - for (let i = 1; i <= 36; i++)
+                      label.form-check.form-check-inline
+                        input.form-check-input(type="radio", name="semanas_gestacion", value=i required)
+                        | #{i}
+              .col-md-12
+                .mb-3
+                  label.form-label Antecedentes médicos:
+                  .d-flex.flex-wrap.gap-3
+                    each antecedente in ["Hipertensión", "Diabetes gestacional", "Preeclampsia", "Parto prematuro"]
+                      div.form-check.form-check-inline
+                        label.form-label
+                          input.form-check-input(type="checkbox", name="antecedentes_medicos", value=antecedente)
+                          | #{antecedente}
+              .col-md-4
+                .mb-3
+                  label.form-label Grupo sanguíneo:
+                  select.form-select(name="grupo_sanguineo")
+                    option(value="") --
+                    option(value="A") A
+                    option(value="B") B
+                    option(value="AB") AB
+                    option(value="O") O
+              .col-md-4
+                .mb-3
+                  label.form-label Factor RH:
+                  select.form-select(name="factor_rh")
+                    option(value="") --
+                    option(value="Positivo") Positivo
+                    option(value="Negativo") Negativo
+              .col-md-4
+                .mb-3
+                  label.form-label Resultados de estudios:
+                  .input-group
+                    select.form-select(name="resultados_estudios")
+                      option(value="") --
+                      option(value="Valores normales") Valores normales
+                      option(value="Medios") Medios
+                      option(value="A analizar") A analizar
+                    span.input-group-text
+                      i.bi.bi-paperclip.me-2
+                      | Adjuntar
+              .col-md-12
+                .mb-3
+                  label.form-label Nombre del obstetra:
+                  select.form-select(name="nombre_obstetra")
+                    option(value="") --
+                    option(value="Dra. Suárez") Dra. Suárez
+                    option(value="Dr. Gómez") Dr. Gómez
+                    option(value="Dra. Ramírez") Dra. Ramírez
+                    option(value="Dr. López") Dr. López
+                    option(value="Dra. Villalba") Dra. Villalba
+              .col-md-6
+                .mb-3
+                  label.form-label Nombre del acompañante:
+                  input.form-control(type="text", name="nombre_acompanante")
+              .col-md-6
+                .mb-3
+                  label.form-label Parentesco:
+                  select.form-select(name="parentesco_acompanante")
+                    option(value="") --
+                    option(value="Hermano") Hermano
+                    option(value="Padre") Padre
+                    option(value="Madre") Madre
+                    option(value="Pareja") Pareja
+                    option(value="Familiar") Familiar
 
           div#campos-cirugia(style="display:none;").mt-4
             h3.text-primary.mb-3 Cirugía Programada
-
-            .mb-3
-              label.form-label Autorización:
-              select.form-select(name="autorizacion_cirugia")
-                option(value="") --
-                option(value="Aprobada") Aprobada
-                option(value="Denegada") Denegada
-                option(value="En proceso") En proceso
-
-            .mb-3
-              label.form-label Historia clínica:
-              select.form-select(name="historia_clinica")
-                option(value="") --
-                option(value="Existente") Existente
-                option(value="No existente") No existente
-
-            .mb-3
-              label.form-label Medicación actual:
-              select.form-select(name="medicamentos_actuales")
-                option(value="") --
-                option(value="Antibióticos") Antibióticos
-                option(value="Analgésicos") Analgésicos
-                option(value="Antiinflamatorios") Antiinflamatorios
-                option(value="Anticoagulantes") Anticoagulantes
-                option(value="Hipertensión + Tiroides") Hipertensión + Tiroides
-
-            .mb-3
-              label.form-label Preoperatorios realizados:
-              select.form-select(name="preoperatorios")
-                option(value="") --
-                option(value="Electrocardiograma, análisis, ecografía") Electrocardiograma, análisis, ecografía
-                option(value="Electrocardiograma, resonancia") Electrocardiograma, resonancia
-                option(value="Electrocardiograma, estudios específicos") Electrocardiograma, estudios específicos
-
-            .mb-3
-              label.form-label Resultados de estudios:
-              .input-group
-                select.form-select(name="resultados_estudios_cirugia")
-                  option(value="") --
-                  option(value="Valores normales") Valores normales
-                  option(value="Medios") Medios
-                  option(value="A analizar") A analizar
-                span.input-group-text
-                  i.bi.bi-paperclip.me-2
-                  | Adjuntar
-
-            .mb-3
-              label.form-label Nombre del cirujano:
-              select.form-select(name="nombre_cirujano")
-                option(value="") --
-                option(value="Dr. Quiroga") Dr. Quiroga
-                option(value="Dra. Fernández") Dra. Fernández
-                option(value="Dr. Martínez") Dr. Martínez
-                option(value="Dra. López") Dra. López
-                option(value="Dr. Torres") Dr. Torres
-
-            .mb-3
-              label.form-label Diagnóstico médico:
-              select.form-select(name="diagnostico_medico")
-                option(value="") --
-                option(value="Colecistitis aguda") Colecistitis aguda
-                option(value="Hernia inguinal") Hernia inguinal
-                option(value="Apendicitis aguda") Apendicitis aguda
-                option(value="Cáncer de colon") Cáncer de colon
-                option(value="Obstrucción intestinal") Obstrucción intestinal
-
-            .mb-3
-              label.form-label Tipo de intervención:
-              select.form-select(name="tipo_intervencion_quirurgica")
-                option(value="") --
-                option(value="Laparoscópica") Laparoscópica
-                option(value="Convencional") Convencional
-                option(value="Ambulatoria") Ambulatoria
-                option(value="Emergente") Emergente
-                option(value="Exploratoria") Exploratoria
-                option(value="Programada") Programada
+            .row
+              .col-md-4
+                .mb-3
+                  label.form-label Autorización:
+                  select.form-select(name="autorizacion_cirugia")
+                    option(value="") --
+                    option(value="Aprobada") Aprobada
+                    option(value="Denegada") Denegada
+                    option(value="En proceso") En proceso
+              .col-md-4
+                .mb-3
+                  label.form-label Historia clínica:
+                  select.form-select(name="historia_clinica")
+                    option(value="") --
+                    option(value="Existente") Existente
+                    option(value="No existente") No existente
+              .col-md-4
+                .mb-3
+                  label.form-label Medicación actual:
+                  select.form-select(name="medicamentos_actuales")
+                    option(value="") --
+                    option(value="Antibióticos") Antibióticos
+                    option(value="Analgésicos") Analgésicos
+                    option(value="Antiinflamatorios") Antiinflamatorios
+                    option(value="Anticoagulantes") Anticoagulantes
+                    option(value="Hipertensión + Tiroides") Hipertensión + Tiroides
+              .col-md-6
+                .mb-3
+                  label.form-label Preoperatorios realizados:
+                  select.form-select(name="preoperatorios")
+                    option(value="") --
+                    option(value="Electrocardiograma, análisis, ecografía") Electrocardiograma, análisis, ecografía
+                    option(value="Electrocardiograma, resonancia") Electrocardiograma, resonancia
+                    option(value="Electrocardiograma, estudios específicos") Electrocardiograma, estudios específicos
+              .col-md-6
+                .mb-3
+                  label.form-label Resultados de estudios:
+                  .input-group
+                    select.form-select(name="resultados_estudios_cirugia")
+                      option(value="") --
+                      option(value="Valores normales") Valores normales
+                      option(value="Medios") Medios
+                      option(value="A analizar") A analizar
+                    span.input-group-text
+                      i.bi.bi-paperclip.me-2
+                      | Adjuntar
+              .col-md-4
+                .mb-3
+                  label.form-label Nombre del cirujano:
+                  select.form-select(name="nombre_cirujano")
+                    option(value="") --
+                    option(value="Dr. Quiroga") Dr. Quiroga
+                    option(value="Dra. Fernández") Dra. Fernández
+                    option(value="Dr. Martínez") Dr. Martínez
+                    option(value="Dra. López") Dra. López
+                    option(value="Dr. Torres") Dr. Torres
+              .col-md-4
+                .mb-3
+                  label.form-label Diagnóstico médico:
+                  select.form-select(name="diagnostico_medico")
+                    option(value="") --
+                    option(value="Colecistitis aguda") Colecistitis aguda
+                    option(value="Hernia inguinal") Hernia inguinal
+                    option(value="Apendicitis aguda") Apendicitis aguda
+                    option(value="Cáncer de colon") Cáncer de colon
+                    option(value="Obstrucción intestinal") Obstrucción intestinal
+              .col-md-4
+                .mb-3
+                  label.form-label Tipo de intervención:
+                  select.form-select(name="tipo_intervencion_quirurgica")
+                    option(value="") --
+                    option(value="Laparoscópica") Laparoscópica
+                    option(value="Convencional") Convencional
+                    option(value="Ambulatoria") Ambulatoria
+                    option(value="Emergente") Emergente
+                    option(value="Exploratoria") Exploratoria
+                    option(value="Programada") Programada
 
           div#campos-derivacion(style="display:none;").mt-4
             h3.text-primary.mb-3 Derivación Médica
-
-            .mb-3
-              label.form-label Nombre del médico derivante:
-              select.form-select(name="nombre_medico_derivante")
-                option(value="") --
-                option(value="Dr. Núñez") Dr. Núñez
-                option(value="Dra. Sosa") Dra. Sosa
-                option(value="Dr. Pereyra") Dr. Pereyra
-                option(value="Dra. Mendoza") Dra. Mendoza
-
-            .mb-3
-              label.form-label Especialidad del médico:
-              select.form-select(name="especialidad_medico_derivante")
-                option(value="") --
-                option(value="Clínico") Clínico
-                option(value="Ginecología") Ginecología
-                option(value="Cardiología") Cardiología
-                option(value="Neurología") Neurología
-                option(value="Pediatría") Pediatría
-
-            .mb-3
-              label.form-label Diagnóstico:
-              textarea.form-control(name="diagnostico_derivacion", rows="3")
-
-            .mb-3
-              label.form-label Tratamiento inicial:
-              select.form-select(name="tratamiento_inicial")
-                option(value="") --
-                option(value="Ninguno") Ninguno
-                option(value="Medicación") Medicación
-                option(value="Sueroterapia") Sueroterapia
-                option(value="Contención") Contención
-
-            .mb-3
-              label.form-label Resultados de estudios:
-              .input-group
-                select.form-select(name="resultados_estudios_origen")
-                  option(value="") --
-                  option(value="Valores normales") Valores normales
-                  option(value="Medios") Medios
-                  option(value="A analizar") A analizar
-                span.input-group-text
-                  i.bi.bi-paperclip.me-2
-                  | Adjuntar
+            .row
+              .col-md-6
+                .mb-3
+                  label.form-label Nombre del médico derivante:
+                  select.form-select(name="nombre_medico_derivante")
+                    option(value="") --
+                    option(value="Dr. Núñez") Dr. Núñez
+                    option(value="Dra. Sosa") Dra. Sosa
+                    option(value="Dr. Pereyra") Dr. Pereyra
+                    option(value="Dra. Mendoza") Dra. Mendoza
+              .col-md-6
+                .mb-3
+                  label.form-label Especialidad del médico:
+                  select.form-select(name="especialidad_medico_derivante")
+                    option(value="") --
+                    option(value="Clínico") Clínico
+                    option(value="Ginecología") Ginecología
+                    option(value="Cardiología") Cardiología
+                    option(value="Neurología") Neurología
+                    option(value="Pediatría") Pediatría
+              .col-md-12
+                .mb-3
+                  label.form-label Diagnóstico:
+                  textarea.form-control(name="diagnostico_derivacion", rows="3")
+              .col-md-6
+                .mb-3
+                  label.form-label Tratamiento inicial:
+                  select.form-select(name="tratamiento_inicial")
+                    option(value="") --
+                    option(value="Ninguno") Ninguno
+                    option(value="Medicación") Medicación
+                    option(value="Sueroterapia") Sueroterapia
+                    option(value="Contención") Contención
+              .col-md-6
+                .mb-3
+                  label.form-label Resultados de estudios:
+                  .input-group
+                    select.form-select(name="resultados_estudios_origen")
+                      option(value="") --
+                      option(value="Valores normales") Valores normales
+                      option(value="Medios") Medios
+                      option(value="A analizar") A analizar
+                    span.input-group-text
+                      i.bi.bi-paperclip.me-2
+                      | Adjuntar
 
           div#campos-urgencia(style="display:none;").mt-4
             h3.text-primary.mb-3 Urgencia
-
-            .mb-3
-              label.form-label Modo de llegada:
-              select.form-select(name="modo_llegada")
-                option(value="") --
-                option(value="Ambulancia") Ambulancia
-                option(value="Particular") Vehículo particular
-                option(value="Policía") Policía
-                option(value="Peatón") Peatón
-
-            .mb-3
-              label.form-label Síntomas al ingreso:
-              textarea.form-control(name="sintomas_al_ingreso", rows="3")
-
-            .mb-3
-              label.form-label Signos vitales:
-              select.form-select(name="signos_vitales_ingreso")
-                option(value="") --
-                option(value="Estables") Estables
-                option(value="Inestables") Inestables
-                option(value="Críticos") Críticos
-
-            .mb-3
-              label.form-label Estado de conciencia:
-              select.form-select(name="nivel_conciencia")
-                option(value="") --
-                option(value="Lúcido") Lúcido
-                option(value="Confuso") Confuso
-                option(value="Inconsciente") Inconsciente
-
-            .mb-3
-              label.form-label Primeras intervenciones:
-              .d-flex.flex-wrap.gap-3
-                each intervencion in ["RCP", "Oxígeno", "Sueroterapia", "Sedación"]
-                  div.form-check.form-check-inline
-                    label.form-check-label
-                      input.form-check-input(type="checkbox", name="primeras_intervenciones", value=intervencion)
-                      | #{intervencion}
-
-            .mb-3
-              label.form-label Médico que atendió:
-              select.form-select(name="nombre_medico_urgencias")
-                option(value="") --
-                option(value="Dr. Medina") Dr. Medina
-                option(value="Dra. Ayala") Dra. Ayala
-                option(value="Dr. Santillán") Dr. Santillán
-                option(value="Dra. Herrera") Dra. Herrera
+            .row
+              .col-md-6
+                .mb-3
+                  label.form-label Modo de llegada:
+                  select.form-select(name="modo_llegada")
+                    option(value="") --
+                    option(value="Ambulancia") Ambulancia
+                    option(value="Particular") Vehículo particular
+                    option(value="Policía") Policía
+                    option(value="Peatón") Peatón
+              .col-md-6
+                .mb-3
+                  label.form-label Signos vitales:
+                  select.form-select(name="signos_vitales_ingreso")
+                    option(value="") --
+                    option(value="Estables") Estables
+                    option(value="Inestables") Inestables
+                    option(value="Críticos") Críticos
+            .row
+              .col-md-12
+                .mb-3
+                  label.form-label Síntomas al ingreso:
+                  textarea.form-control(name="sintomas_al_ingreso", rows="3")
+              .col-md-6
+                .mb-3
+                  label.form-label Estado de conciencia:
+                  select.form-select(name="nivel_conciencia")
+                    option(value="") --
+                    option(value="Lúcido") Lúcido
+                    option(value="Confuso") Confuso
+                    option(value="Inconsciente") Inconsciente
+              .col-md-6
+                .mb-3
+                  label.form-label Médico que atendió:
+                  select.form-select(name="nombre_medico_urgencias")
+                    option(value="") --
+                    option(value="Dr. Medina") Dr. Medina
+                    option(value="Dra. Ayala") Dra. Ayala
+                    option(value="Dr. Santillán") Dr. Santillán
+                    option(value="Dra. Herrera") Dra. Herrera
+            .row
+              .col-md-12
+                .mb-3
+                  label.form-label Primeras intervenciones:
+                  .d-flex.flex-wrap.gap-3
+                    each intervencion in ["RCP", "Oxígeno", "Sueroterapia", "Sedación"]
+                      div.form-check.form-check-inline
+                        label.form-label
+                          input.form-check-input(type="checkbox", name="primeras_intervenciones", value=intervencion)
+                          | #{intervencion}
 
           br
 
-          .d-flex.justify-content-center.gap-3.pt-4.mt-4.border-top
-           
+          .d-flex.justify-content-between.gap-3.pt-4.mt-4.border-top
             a(href=`/pacientes/editar/${paciente.id}`).btn.btn-secondary.btn-lg.rounded-pill
               i.bi.bi-arrow-left-circle.me-2
-              | Volver
+              | ← Volver
             button(type="submit").btn.btn-primary.btn-lg.rounded-pill
               i.bi.bi-arrow-right-circle.me-2
-              | Continuar
+              | Siguiente
 
 block scripts
   script(src="/js/internaciones.js")
