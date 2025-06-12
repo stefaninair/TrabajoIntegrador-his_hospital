@@ -1,3 +1,5 @@
+// Esta función es para la página de nueva.pug para mostrar/ocultar campos adicionales.
+// No usa 'require' porque se ejecuta en el navegador.
 function mostrarCamposAdicionales(valor) {
   const camposMaternidad = document.getElementById("campos-maternidad");
   const camposCirugia = document.getElementById("campos-cirugia");
@@ -29,30 +31,33 @@ function mostrarCamposAdicionales(valor) {
   }
 }
 
+// Se ejecuta una vez que el DOM está completamente cargado.
 document.addEventListener('DOMContentLoaded', function() {
+  // Lógica para la página de nueva.pug
   const motivoSelect = document.getElementById('motivo');
   if (motivoSelect) {
+    // Si estamos en nueva.pug, inicializa los campos condicionales y añade el listener.
     mostrarCamposAdicionales(motivoSelect.value);
     motivoSelect.addEventListener('change', (event) => {
         mostrarCamposAdicionales(event.target.value);
     });
   }
 
-  // Logic for selecting ala, habitacion, and cama (for seleccionar_cama.pug)
+  // --- LÓGICA PARA seleccionar_cama.pug ---
   const alaSelect = document.getElementById('ala');
   const habitacionesContainer = document.getElementById('habitaciones-container');
   const selectedCamaIdInput = document.getElementById('selected_cama_id');
   const btnFinalizarInternacion = document.getElementById('btn-finalizar-internacion');
 
-  // pacienteSexo is passed globally from seleccionar_cama.pug
-  // const pacienteSexo; // NO UNCOMMENT, IT IS PASSED FROM PUG
+  // Asegúrate de que `pacienteSexo` esté definido globalmente en seleccionar_cama.pug
+  // por el script inline dentro de ese archivo.
 
-  if (alaSelect && habitacionesContainer) {
+  if (alaSelect && habitacionesContainer) { // Solo ejecuta esta lógica si estos elementos existen
     alaSelect.addEventListener('change', async () => {
       const alaId = alaSelect.value;
-      habitacionesContainer.innerHTML = '';
-      selectedCamaIdInput.value = '';
-      btnFinalizarInternacion.disabled = true;
+      habitacionesContainer.innerHTML = ''; // Limpiar habitaciones anteriores
+      selectedCamaIdInput.value = ''; // Limpiar cama seleccionada
+      btnFinalizarInternacion.disabled = true; // Deshabilitar botón de finalizar
 
       if (alaId) {
         try {
@@ -62,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (habitaciones.length > 0) {
             habitaciones.forEach(habitacion => {
               const habitacionCardCol = document.createElement('div');
-              habitacionCardCol.classList.add('col-md-6', 'col-lg-4');
+              habitacionCardCol.classList.add('col-md-6', 'col-lg-4'); // 2 o 3 columnas por fila
               habitacionCardCol.innerHTML = `
                 <div class="card h-100 shadow-sm border-secondary">
                   <div class="card-header bg-light">
@@ -78,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
               `;
               habitacionesContainer.appendChild(habitacionCardCol);
 
+              // Cargar camas para cada habitación y mostrarlas dentro de la tarjeta
               loadAndDisplayCamasInCard(habitacion.id, `camas-display-${habitacion.id}`);
             });
           } else {
@@ -90,12 +96,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
+    // Función para cargar las camas y mostrarlas como "tarjetas" pequeñas dentro de la tarjeta de la habitación
     async function loadAndDisplayCamasInCard(habitacionId, containerId) {
         const container = document.getElementById(containerId);
         try {
             const response = await fetch(`/internaciones/api/camas-por-habitacion/${habitacionId}`);
             const camas = await response.json();
-            container.innerHTML = '';
+            container.innerHTML = ''; // Limpiar el "Cargando camas..."
 
             if (camas.length > 0) {
                 camas.forEach(cama => {
@@ -106,41 +113,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     let camaStatusText = '';
                     let isSelectable = false;
-                    let backgroundColor = '';
-                    let textColor = 'text-white';
+                    let backgroundColorClass = '';
+                    let textColorClass = 'text-white';
                     let iconClass = '';
 
                     if (cama.estado === 'libre' && cama.higienizada === 1) {
                         let isAptaPorSexo = true;
                         if (cama.capacidad > 1 && typeof pacienteSexo !== 'undefined' && pacienteSexo !== null) {
-                            const otraCama = camas.find(oc => oc.id !== cama.id);
-                            if (otraCama && otraCama.estado === 'ocupada' && otraCama.sexo_paciente_ocupante && otraCama.sexo_paciente_ocupante !== pacienteSexo) {
-                                isAptaPorSexo = false;
+                            const otrasCamasEnHabitacion = camas.filter(oc => oc.id !== cama.id && oc.estado === 'ocupada');
+                            if (otrasCamasEnHabitacion.length > 0) {
+                                for(const oc of otrasCamasEnHabitacion) {
+                                    if (oc.sexo_paciente_ocupante && oc.sexo_paciente_ocupante !== pacienteSexo) {
+                                        isAptaPorSexo = false;
+                                        break;
+                                    }
+                                }
                             }
                         }
 
                         if (isAptaPorSexo) {
-                            backgroundColor = 'bg-success';
+                            backgroundColorClass = 'bg-success';
                             camaStatusText = 'Libre';
                             isSelectable = true;
                             iconClass = 'bi-check-circle-fill';
                         } else {
-                            backgroundColor = 'bg-danger';
+                            backgroundColorClass = 'bg-danger';
                             camaStatusText = 'No apta (Sexo)';
                             iconClass = 'bi-gender-ambiguous';
                         }
+                    } else if (cama.estado === 'libre' && cama.higienizada === 0) {
+                        backgroundColorClass = 'bg-warning';
+                        camaStatusText = 'Sin Hig.';
+                        textColorClass = 'text-dark';
+                        iconClass = 'bi-exclamation-triangle-fill';
                     } else if (cama.estado === 'ocupada') {
-                        backgroundColor = 'bg-warning';
-                        camaStatusText = `Ocupada (${cama.sexo_paciente_ocupante === 'M' ? 'H' : 'M'})`;
-                        textColor = 'text-dark';
-                        iconClass = `bi-person-${cama.sexo_paciente_ocupante === 'M' ? 'fill' : 'circle-fill'}`;
-                    } else if (cama.estado === 'en_mantenimiento' || cama.higienizada === 0) {
-                        backgroundColor = 'bg-secondary';
-                        camaStatusText = 'No Disp.';
+                        if (cama.sexo_paciente_ocupante === 'M') {
+                            backgroundColorClass = 'bg-primary-blue';
+                            camaStatusText = 'Ocupada (H)';
+                            iconClass = 'bi-person-fill';
+                        } else if (cama.sexo_paciente_ocupante === 'F') {
+                            backgroundColorClass = 'bg-primary-pink';
+                            camaStatusText = 'Ocupada (M)';
+                            iconClass = 'bi-person-circle-fill';
+                        } else {
+                            backgroundColorClass = 'bg-warning';
+                            camaStatusText = 'Ocupada';
+                            textColorClass = 'text-dark';
+                            iconClass = 'bi-person-fill';
+                        }
+                    } else if (cama.estado === 'en_mantenimiento') {
+                        backgroundColorClass = 'bg-secondary';
+                        camaStatusText = 'Mant.';
+                        iconClass = 'bi-tools';
+                    } else {
+                        backgroundColorClass = 'bg-danger';
+                        camaStatusText = 'Error';
                         iconClass = 'bi-x-circle-fill';
                     }
 
-                    camaBadge.classList.add(backgroundColor);
+
+                    camaBadge.classList.add(backgroundColorClass);
                     if (isSelectable) {
                         camaBadge.classList.add('cama-selectable');
                     } else {
@@ -148,9 +180,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     camaBadge.innerHTML = `
-                        <i class="bi ${iconClass} ${textColor} mb-1" style="font-size: 1.8rem;"></i>
-                        <div class="fw-bold ${textColor}">C${cama.numero_cama}</div>
-                        <small class="${textColor}">${camaStatusText}</small>
+                        <i class="bi ${iconClass} ${textColorClass} mb-1"></i>
+                        <div class="fw-bold ${textColorClass}">C${cama.numero_cama}</div>
+                        <small class="${textColorClass}">${camaStatusText}</small>
                     `;
                     container.appendChild(camaBadge);
                 });
@@ -164,19 +196,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Función para manejar la selección de una cama (clic en el badge de cama)
     function addCamaBadgeListeners() {
       document.querySelectorAll('.cama-selectable').forEach(badge => {
         badge.addEventListener('click', () => {
+          // Remover la selección de cualquier otra cama
           document.querySelectorAll('.cama-selectable').forEach(otherBadge => {
             otherBadge.classList.remove('selected-cama');
           });
 
+          // Resaltar la cama seleccionada
           badge.classList.add('selected-cama');
 
+          // Guardar el ID de la cama en el input oculto
           selectedCamaIdInput.value = badge.dataset.camaId;
-          btnFinalizarInternacion.disabled = false;
+          btnFinalizarInternacion.disabled = false; // Habilitar botón de finalizar
         });
       });
     }
-  }
+  } // Fin if (alaSelect && habitacionesContainer)
 });

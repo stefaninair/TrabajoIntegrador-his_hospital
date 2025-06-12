@@ -1,31 +1,217 @@
 extends ../layout
 
 block content
-  h1 Comprobante de Internación
+  .container.my-5
+    .card.shadow-lg.mx-auto.border-0.rounded-4(style="max-width: 900px;")
+      .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
+        h1.mb-0.display-5 Comprobante de Internación
 
-  .comprobante-box(style="max-width: 600px; margin: auto; background: #f9f9f9; border: 1px solid #ccc; padding: 20px; border-radius: 10px; text-align: center;")
-    img(src="/img/icono-comprobante.png", alt="Comprobante", style="width: 80px; margin-bottom: 15px;")
-    h2 Paciente internado exitosamente
+      .card-body.p-5.text-white
+        .alert.alert-success.text-center.mb-4
+          h4.alert-heading.text-dark
+          p.text-dark
+          h4.alert-heading ¡Internación Exitosa!
+          p El paciente ha sido internado correctamente.
 
-    p
-      strong Nombre:
-      |  #{paciente.nombre} #{paciente.apellido}
+        h3.mb-4.text-primary
+          | Detalles Generales de la Internación
+        .row.mb-3
+          .col-md-4
+            strong Paciente:
+          .col-md-8
+            | #{internacion.paciente_nombre} #{internacion.paciente_apellido} (DNI: #{internacion.paciente_dni})
 
-    p
-      strong Tipo de internación:
-      |  #{internacion.tipo_ingreso}
+        .row.mb-3
+          .col-md-4
+            strong Tipo de Ingreso:
+          .col-md-8
+            | #{internacion.tipo_ingreso ? internacion.tipo_ingreso.charAt(0).toUpperCase() + internacion.tipo_ingreso.slice(1) : 'N/A'}
 
-    p
-      strong Sala (Ala):
-      |  #{ala}
+        .row.mb-3
+          .col-md-4
+            strong Fecha de Ingreso:
+          .col-md-8
+            | #{new Date(internacion.fecha_ingreso).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
 
-    p
-      strong Habitación:
-      |  #{habitacion.numero_habitacion}
+        hr.my-4
 
-    p
-      strong Cama asignada:
-      |  #{cama.numero_cama}
+        h3.mb-4.text-primary
+          | Asignación de Ubicación
+        .row.mb-3
+          .col-md-4
+            strong Ala:
+          .col-md-8
+            | #{internacion.nombre_ala || 'N/A'}
 
-    br
-    a(href='/pacientes', style='display:inline-block; margin-top: 15px; padding:10px 20px; background:#4CAF50; color:white; border-radius:5px; text-decoration:none;') Volver al inicio
+        .row.mb-3
+          .col-md-4
+            strong Habitación:
+          .col-md-8
+            | #{internacion.numero_habita || 'N/A'}
+
+        .row.mb-3
+          .col-md-4
+            strong Cama:
+          .col-md-8
+            | #{internacion.numero_cama || 'N/A'}
+
+        hr.my-4
+
+        if internacion.tipo_ingreso === 'maternidad'
+          h3.mb-4.text-primary
+            | Detalles de Maternidad
+          .row.mb-3
+            .col-md-4
+              strong Semanas de gestación:
+            .col-md-8
+              | #{internacion.semanas_gestacion || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Antecedentes médicos:
+            .col-md-8
+              | #{internacion.antecedentes_medicos && internacion.antecedentes_medicos.length > 0 ? internacion.antecedentes_medicos.join(', ') : 'Ninguno'}
+          .row.mb-3
+            .col-md-4
+              strong Grupo sanguíneo:
+            .col-md-8
+              | #{internacion.grupo_sanguineo || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Factor RH:
+            .col-md-8
+              | #{internacion.factor_rh || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Resultados de estudios:
+            .col-md-8
+              | #{internacion.resultados_estudios || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Nombre del obstetra:
+            .col-md-8
+              | #{internacion.nombre_obstetra || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Nombre del acompañante:
+            .col-md-8
+              | #{internacion.nombre_acompanante || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Parentesco:
+            .col-md-8
+              | #{internacion.parentesco_acompanante || 'N/A'}
+
+        if internacion.tipo_ingreso === 'cirugia'
+          h3.mb-4.text-primary
+            | Detalles de Cirugía
+          .row.mb-3
+            .col-md-4
+              strong Autorización:
+            .col-md-8
+              | #{internacion.autorizacion_cirugia || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Historia clínica:
+            .col-md-8
+              | #{internacion.historia_clinica || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Medicamentos actuales:
+            .col-md-8
+              | #{internacion.medicamentos_actuales || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Preoperatorios:
+            .col-md-8
+              | #{internacion.preoperatorios || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Resultados de estudios:
+            .col-md-8
+              | #{internacion.resultados_estudios_cirugia || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Nombre del cirujano:
+            .col-md-8
+              | #{internacion.nombre_cirujano || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Diagnóstico médico:
+            .col-md-8
+              | #{internacion.diagnostico_medico || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Tipo de intervención:
+            .col-md-8
+              | #{internacion.tipo_intervencion_quirurgica || 'N/A'}
+
+        if internacion.tipo_ingreso === 'derivacion'
+          h3.mb-4.text-primary
+            | Detalles de Derivación
+          .row.mb-3
+            .col-md-4
+              strong Médico derivante:
+            .col-md-8
+              | #{internacion.nombre_medico_derivante || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Especialidad:
+            .col-md-8
+              | #{internacion.especialidad_medico_derivante || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Diagnóstico:
+            .col-md-8
+              | #{internacion.diagnostico_derivacion || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Tratamiento inicial:
+            .col-md-8
+              | #{internacion.tratamiento_inicial || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Resultados de estudios:
+            .col-md-8
+              | #{internacion.resultados_estudios_origen || 'N/A'}
+
+        if internacion.tipo_ingreso === 'urgencia'
+          h3.mb-4.text-primary
+            | Detalles de Urgencia
+          .row.mb-3
+            .col-md-4
+              strong Modo de llegada:
+            .col-md-8
+              | #{internacion.modo_llegada || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Síntomas al ingreso:
+            .col-md-8
+              | #{internacion.sintomas_al_ingreso || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Signos vitales:
+            .col-md-8
+              | #{internacion.signos_vitales_ingreso || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Nivel de conciencia:
+            .col-md-8
+              | #{internacion.nivel_conciencia || 'N/A'}
+          .row.mb-3
+            .col-md-4
+              strong Primeras intervenciones:
+            .col-md-8
+              | #{internacion.primeras_intervenciones && internacion.primeras_intervenciones.length > 0 ? internacion.primeras_intervenciones.join(', ') : 'Ninguna'}
+          .row.mb-3
+            .col-md-4
+              strong Médico de urgencias:
+            .col-md-8
+              | #{internacion.nombre_medico_urgencias || 'N/A'}
+
+        .d-flex.justify-content-center.gap-3.pt-4.mt-4.border-top
+          a(href=`/pacientes/editar/${internacion.id_paciente}`).btn.btn-primary.btn-lg.rounded-pill
+            i.bi.bi-person-fill.me-2
+            | Ver Perfil del Paciente
+          a(href=`/pacientes`).btn.btn-secondary.btn-lg.rounded-pill
+            i.bi.bi-list.me-2
+            | Ir al Listado de Pacientes

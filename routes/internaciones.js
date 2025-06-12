@@ -11,23 +11,22 @@ router.get('/nueva/:id_paciente', async (req, res) => {
 
     if (!paciente) {
       req.flash('error', 'Paciente no encontrado.');
-      return res.redirect('/pacientes'); // Redirige si el paciente no existe
+      return res.redirect('/pacientes');
     }
 
-    // Opcional: Validar si el paciente ya tiene una internación activa
     const [activeInternations] = await req.db.query(
       'SELECT id FROM internaciones WHERE id_paciente = ? AND fecha_egreso IS NULL',
       [id_paciente]
     );
     if (activeInternations.length > 0) {
       req.flash('error', 'El paciente ya tiene una internación activa.');
-      return res.redirect('/pacientes'); // O a una página de error/detalle de paciente
+      return res.redirect('/pacientes');
     }
 
     res.render('internaciones/nueva', {
       title: 'Nueva Internación',
       paciente: paciente,
-      messages: req.flash() // Para mostrar mensajes flash si los hay
+      messages: req.flash()
     });
   } catch (error) {
     console.error('Error al cargar la página de internación (Paso 1):', error);
@@ -36,28 +35,23 @@ router.get('/nueva/:id_paciente', async (req, res) => {
   }
 });
 
-// NUEVA RUTA: Procesar el formulario de nueva.pug (Paso 1 POST)
-// Guarda los datos preliminares en la sesión y redirige a seleccionar_cama.pug (Paso 2 GET)
+// Ruta POST: Procesar el formulario de nueva.pug (Paso 1 POST)
 router.post('/pre-seleccionar-cama/:id_paciente', async (req, res) => {
     const pacienteId = req.params.id_paciente;
-    const internacionData = req.body; // Esto contendrá todos los datos del formulario de nueva.pug
+    const internacionData = req.body;
 
-    // Guardar los datos de internacionData en la sesión
     req.session.internacionPreliminar = {
         pacienteId: pacienteId,
         data: internacionData
     };
 
-    // Redirigir al formulario de selección de cama
     res.redirect(`/internaciones/seleccionar-cama/${pacienteId}`);
 });
 
-
-// NUEVA RUTA: Mostrar el formulario de selección de cama (Paso 2: GET)
+// Ruta GET: Mostrar el formulario de selección de cama (Paso 2: GET)
 router.get('/seleccionar-cama/:id_paciente', async (req, res) => {
   const pacienteId = req.params.id_paciente;
   try {
-    // 1. Obtener datos del paciente
     const [pacienteRows] = await req.db.query('SELECT * FROM pacientes WHERE id = ?', [pacienteId]);
     const paciente = pacienteRows[0];
 
@@ -66,24 +60,21 @@ router.get('/seleccionar-cama/:id_paciente', async (req, res) => {
       return res.redirect('/pacientes');
     }
 
-    // 2. Obtener todas las alas para el select
     const [alasRows] = await req.db.query('SELECT * FROM alas');
     const alas = alasRows;
 
-    // Recuperar los datos preliminares de la internación de la sesión
     const internacionPreliminar = req.session.internacionPreliminar;
 
-    // Validar que los datos preliminares corresponden a este paciente
     if (!internacionPreliminar || internacionPreliminar.pacienteId != pacienteId) {
         req.flash('error', 'Datos preliminares de internación no encontrados o no coinciden. Por favor, complete el formulario de internación primero.');
-        return res.redirect(`/internaciones/nueva/${pacienteId}`); // Redirigir de nuevo al Paso 1
+        return res.redirect(`/internaciones/nueva/${pacienteId}`);
     }
 
     res.render('internaciones/seleccionar_cama', {
       title: 'Seleccionar Cama',
       paciente: paciente,
       alas: alas,
-      messages: req.flash() // Para mostrar mensajes flash si los hay
+      messages: req.flash()
     });
 
   } catch (error) {
@@ -93,12 +84,11 @@ router.get('/seleccionar-cama/:id_paciente', async (req, res) => {
   }
 });
 
-
-// Rutas API para carga dinámica (AJAX) - Se mantienen aquí
+// Rutas API para carga dinámica (AJAX)
 router.get('/api/habitaciones-por-ala/:alaId', async (req, res) => {
   try {
     const alaId = req.params.alaId;
-    const [habitaciones] = await req.db.query('SELECT * FROM habitaciones WHERE id_ala = ?', [alaId]);
+    const [habitaciones] = await req.db.query('SELECT id, numero_habita, capacidad, id_ala FROM habitaciones WHERE id_ala = ?', [alaId]);
     res.json(habitaciones);
   } catch (error) {
     console.error('Error al obtener habitaciones por ala:', error);
@@ -109,7 +99,6 @@ router.get('/api/habitaciones-por-ala/:alaId', async (req, res) => {
 router.get('/api/camas-por-habitacion/:habitacionId', async (req, res) => {
   try {
     const habitacionId = req.params.habitacionId;
-    // Unir camas con pacientes para obtener el sexo si la cama está ocupada
     const [camas] = await req.db.query(`
       SELECT
         c.id,
@@ -136,9 +125,8 @@ router.get('/api/camas-por-habitacion/:habitacionId', async (req, res) => {
 // RUTA POST: Para procesar la internación COMPLETA (Paso 3)
 router.post('/finalizar-internacion/:id_paciente', async (req, res) => {
   const pacienteId = req.params.id_paciente;
-  const { id_cama } = req.body; // id_cama es lo que viene del formulario seleccionar_cama.pug
+  const { id_cama } = req.body;
 
-  // Recuperar los datos preliminares de la internación de la sesión
   const internacionPreliminar = req.session.internacionPreliminar;
 
   if (!internacionPreliminar || internacionPreliminar.pacienteId != pacienteId) {
@@ -146,60 +134,13 @@ router.post('/finalizar-internacion/:id_paciente', async (req, res) => {
       return res.redirect(`/internaciones/nueva/${pacienteId}`);
   }
 
-  // Combinar todos los datos para la internación final
-  const { motivo, ...otrosDatosInternacion } = internacionPreliminar.data; // Desestructuramos motivo
+  const { motivo, ...otrosDatosInternacion } = internacionPreliminar.data;
   const fechaIngreso = new Date();
-
-  // Asegúrate de que los campos de internacionCompleta coincidan con tu tabla 'internaciones'
-  // y que los campos de array (como antecedentes_medicos) se conviertan a JSON strings.
-  const internacionCompleta = {
-    id_paciente: pacienteId,
-    tipo_ingreso: motivo,
-    id_cama: id_cama,
-    fecha_ingreso: fechaIngreso,
-    fecha_egreso: null, // Asume que al iniciar no hay fecha de egreso
-
-    // Campos de Maternidad (si aplica)
-    semanas_gestacion: otrosDatosInternacion.semanas_gestacion,
-    antecedentes_medicos: JSON.stringify(otrosDatosInternacion.antecedentes_medicos || []),
-    grupo_sanguineo: otrosDatosInternacion.grupo_sanguineo,
-    factor_rh: otrosDatosInternacion.factor_rh,
-    resultados_estudios: otrosDatosInternacion.resultados_estudios,
-    nombre_obstetra: otrosDatosInternacion.nombre_obstetra,
-    nombre_acompanante: otrosDatosInternacion.nombre_acompanante,
-    parentesco_acompanante: otrosDatosInternacion.parentesco_acompanante,
-
-    // Campos de Cirugía (si aplica)
-    autorizacion_cirugia: otrosDatosInternacion.autorizacion_cirugia,
-    historia_clinica: otrosDatosInternacion.historia_clinica,
-    medicamentos_actuales: otrosDatosInternacion.medicamentos_actuales,
-    preoperatorios: otrosDatosInternacion.preoperatorios,
-    resultados_estudios_cirugia: otrosDatosInternacion.resultados_estudios_cirugia,
-    nombre_cirujano: otrosDatosInternacion.nombre_cirujano,
-    diagnostico_medico: otrosDatosInternacion.diagnostico_medico,
-    tipo_intervencion_quirurgica: otrosDatosInternacion.tipo_intervencion_quirurgica,
-
-    // Campos de Derivación (si aplica)
-    nombre_medico_derivante: otrosDatosInternacion.nombre_medico_derivante,
-    especialidad_medico_derivante: otrosDatosInternacion.especialidad_medico_derivante,
-    diagnostico_derivacion: otrosDatosInternacion.diagnostico_derivacion,
-    tratamiento_inicial: otrosDatosInternacion.tratamiento_inicial,
-    resultados_estudios_origen: otrosDatosInternacion.resultados_estudios_origen,
-
-    // Campos de Urgencia (si aplica)
-    modo_llegada: otrosDatosInternacion.modo_llegada,
-    sintomas_al_ingreso: otrosDatosInternacion.sintomas_al_ingreso,
-    signos_vitales_ingreso: otrosDatosInternacion.signos_vitales_ingreso,
-    nivel_conciencia: otrosDatosInternacion.nivel_conciencia,
-    primeras_intervenciones: JSON.stringify(otrosDatosInternacion.primeras_intervenciones || []),
-    nombre_medico_urgencias: otrosDatosInternacion.nombre_medico_urgencias,
-  };
-
 
   let connection;
   try {
-    connection = await req.db.getConnection(); // Obtener una conexión del pool
-    await connection.beginTransaction(); // Iniciar una transacción
+    connection = await req.db.getConnection();
+    await connection.beginTransaction();
 
     // 1. VALIDACIÓN: Asegurar que el paciente no tiene una internación activa
     const [activeInternations] = await connection.execute(
@@ -231,15 +172,13 @@ router.post('/finalizar-internacion/:id_paciente', async (req, res) => {
       return res.redirect(`/internaciones/seleccionar-cama/${pacienteId}`);
     }
 
-    // 3. VALIDACIÓN: Cama libre e higienizada
     if (camaSeleccionada.estado !== 'libre' || camaSeleccionada.higienizada !== 1) {
       await connection.rollback();
       req.flash('error', 'La cama seleccionada no está libre o no está higienizada.');
       return res.redirect(`/internaciones/seleccionar-cama/${pacienteId}`);
     }
 
-    // 4. VALIDACIÓN: Sexo en habitaciones compartidas
-    if (camaSeleccionada.capacidad > 1) { // Si es una habitación de más de una cama
+    if (camaSeleccionada.capacidad > 1) {
       const [otrasCamas] = await connection.execute(
         `SELECT c2.id, c2.id_paciente_actual, p_otro.sexo
          FROM camas c1
@@ -260,62 +199,167 @@ router.post('/finalizar-internacion/:id_paciente', async (req, res) => {
       }
     }
 
-    // --- Inserción de la internación principal ---
-    // Construye la query de inserción dinámicamente para la tabla 'internaciones'
-    // que ahora contendrá todos los campos de los sub-formularios.
-    const internacionFields = [
-      'id_paciente', 'tipo_ingreso', 'id_cama', 'fecha_ingreso', 'fecha_egreso',
-      'semanas_gestacion', 'antecedentes_medicos', 'grupo_sanguineo', 'factor_rh', 'resultados_estudios',
-      'nombre_obstetra', 'nombre_acompanante', 'parentesco_acompanante',
-      'autorizacion_cirugia', 'historia_clinica', 'medicamentos_actuales', 'preoperatorios',
-      'resultados_estudios_cirugia', 'nombre_cirujano', 'diagnostico_medico', 'tipo_intervencion_quirurgica',
-      'nombre_medico_derivante', 'especialidad_medico_derivante', 'diagnostico_derivacion', 'tratamiento_inicial',
-      'resultados_estudios_origen',
-      'modo_llegada', 'sintomas_al_ingreso', 'signos_vitales_ingreso', 'nivel_conciencia',
-      'primeras_intervenciones', 'nombre_medico_urgencias'
-    ];
-
-    // Crea un array de valores en el mismo orden que los campos
-    const internacionValues = internacionFields.map(field => {
-      // Maneja específicamente los campos que son arrays y deben ser JSON strings
-      if (['antecedentes_medicos', 'primeras_intervenciones'].includes(field)) {
-        return internacionCompleta[field] || '[]'; // Asegura un array vacío como string si no hay datos
-      }
-      // Asegura que los valores sean null si son undefined, para evitar errores en la DB
-      return internacionCompleta[field] === undefined ? null : internacionCompleta[field];
-    });
-
-    const placeholders = internacionFields.map(() => '?').join(', ');
-    const query = `INSERT INTO internaciones (${internacionFields.join(', ')}) VALUES (${placeholders})`;
-
-    const [result] = await connection.execute(query, internacionValues);
+    // --- PRIMERO: Insertar la internación principal en la tabla 'internaciones' ---
+    const [result] = await connection.execute(
+      `INSERT INTO internaciones (id_paciente, tipo_ingreso, id_cama, fecha_ingreso, fecha_egreso)
+       VALUES (?, ?, ?, ?, ?)`,
+      [pacienteId, motivo, id_cama, fechaIngreso, null]
+    );
     const nuevaInternacionId = result.insertId;
 
+    // --- SEGUNDO: Insertar en la tabla auxiliar correspondiente según el tipo de ingreso ---
+    if (motivo === 'maternidad') {
+      await connection.execute(`
+        INSERT INTO internaciones_maternidad (
+          id_internacion, semanas_gestacion, antecedentes_medicos,
+          grupo_sanguineo, factor_rh, resultados_estudios, nombre_obstetra,
+          nombre_acompanante, parentesco_acompanante
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        nuevaInternacionId,
+        otrosDatosInternacion.semanas_gestacion || null,
+        JSON.stringify(otrosDatosInternacion.antecedentes_medicos || []),
+        otrosDatosInternacion.grupo_sanguineo || null,
+        otrosDatosInternacion.factor_rh || null,
+        otrosDatosInternacion.resultados_estudios || null,
+        otrosDatosInternacion.nombre_obstetra || null,
+        otrosDatosInternacion.nombre_acompanante || null,
+        otrosDatosInternacion.parentesco_acompanante || null
+      ]);
+    } else if (motivo === 'cirugia') {
+      await connection.execute(`
+        INSERT INTO internaciones_cirugia (
+          id_internacion, autorizacion_cirugia, historia_clinica,
+          medicamentos_actuales, preoperatorios, resultados_estudios_cirugia,
+          nombre_cirujano, diagnostico_medico, tipo_intervencion_quirurgica
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        nuevaInternacionId,
+        otrosDatosInternacion.autorizacion_cirugia || null,
+        otrosDatosInternacion.historia_clinica || null,
+        otrosDatosInternacion.medicamentos_actuales || null,
+        otrosDatosInternacion.preoperatorios || null,
+        otrosDatosInternacion.resultados_estudios_cirugia || null,
+        otrosDatosInternacion.nombre_cirujano || null,
+        otrosDatosInternacion.diagnostico_medico || null,
+        otrosDatosInternacion.tipo_intervencion_quirurgica || null
+      ]);
+    } else if (motivo === 'derivacion') {
+      await connection.execute(`
+        INSERT INTO internaciones_derivacion (
+          id_internacion, nombre_medico_derivante, especialidad_medico_derivante,
+          diagnostico_derivacion, tratamiento_inicial, resultados_estudios_origen
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [
+        nuevaInternacionId,
+        otrosDatosInternacion.nombre_medico_derivante || null,
+        otrosDatosInternacion.especialidad_medico_derivante || null,
+        otrosDatosInternacion.diagnostico_derivacion || null,
+        otrosDatosInternacion.tratamiento_inicial || null,
+        otrosDatosInternacion.resultados_estudios_origen || null
+      ]);
+    } else if (motivo === 'urgencia') {
+      await connection.execute(`
+        INSERT INTO internaciones_urgencia (
+          id_internacion, modo_llegada, sintomas_al_ingreso,
+          signos_vitales_ingreso, nivel_conciencia, primeras_intervenciones,
+          nombre_medico_urgencias
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `, [
+        nuevaInternacionId,
+        otrosDatosInternacion.modo_llegada || null,
+        otrosDatosInternacion.sintomas_al_ingreso || null,
+        otrosDatosInternacion.signos_vitales_ingreso || null,
+        otrosDatosInternacion.nivel_conciencia || null,
+        JSON.stringify(otrosDatosInternacion.primeras_intervenciones || []),
+        otrosDatosInternacion.nombre_medico_urgencias || null
+      ]);
+    }
 
-    // 6. Actualizar el estado de la cama a 'ocupada' y asignar id_paciente_actual
+    // 3. Actualizar el estado de la cama a 'ocupada' y asignar id_paciente_actual
     await connection.execute(
       'UPDATE camas SET estado = ?, id_paciente_actual = ? WHERE id = ?',
       ['ocupada', pacienteId, id_cama]
     );
 
-    await connection.commit(); // Confirmar la transacción
-    req.session.internacionPreliminar = null; // Limpiar datos preliminares de la sesión
+    await connection.commit();
+    req.session.internacionPreliminar = null;
 
     req.flash('success', 'Internación registrada con éxito!');
-    res.redirect(`/pacientes/editar/${pacienteId}`); // Redirige al perfil del paciente o donde desees
+    // Redirigir al comprobante
+    res.redirect(`/internaciones/comprobante/${nuevaInternacionId}`);
 
   } catch (error) {
     if (connection) {
-      await connection.rollback(); // Deshacer la transacción en caso de error
+      await connection.rollback();
     }
     console.error('Error al procesar la internación:', error);
     req.flash('error', 'Error interno del servidor al procesar la internación.');
-    res.redirect(`/internaciones/seleccionar-cama/${pacienteId}`); // Redirige de vuelta al paso 2
+    res.redirect(`/internaciones/seleccionar-cama/${pacienteId}`);
   } finally {
     if (connection) {
-      connection.release(); // Liberar la conexión
+      connection.release();
     }
   }
+});
+
+// NUEVA RUTA: Mostrar el comprobante de internación
+router.get('/comprobante/:id_internacion', async (req, res) => {
+    const internacionId = req.params.id_internacion;
+    try {
+        // Unir internaciones con pacientes, camas, habitaciones y alas
+        const [internacionRows] = await req.db.query(
+            `SELECT i.*, p.nombre AS paciente_nombre, p.apellido AS paciente_apellido, p.dni AS paciente_dni,
+                    c.numero_cama, h.numero_habita, a.nombre AS nombre_ala
+             FROM internaciones i
+             JOIN pacientes p ON i.id_paciente = p.id
+             JOIN camas c ON i.id_cama = c.id
+             JOIN habitaciones h ON c.id_habitacion = h.id
+             JOIN alas a ON h.id_ala = a.id
+             WHERE i.id = ?`,
+            [internacionId]
+        );
+        let internacion = internacionRows[0];
+
+        if (!internacion) {
+            req.flash('error', 'Comprobante de internación no encontrado.');
+            return res.redirect('/pacientes');
+        }
+
+        // Obtener datos específicos según el tipo de ingreso
+        if (internacion.tipo_ingreso === 'maternidad') {
+            const [maternidadRows] = await req.db.query('SELECT * FROM internaciones_maternidad WHERE id_internacion = ?', [internacion.id]);
+            internacion = { ...internacion, ...maternidadRows[0] }; // Fusionar datos
+            // Parsear JSON si aplica
+            if (internacion.antecedentes_medicos) internacion.antecedentes_medicos = JSON.parse(internacion.antecedentes_medicos);
+        } else if (internacion.tipo_ingreso === 'cirugia') {
+            const [cirugiaRows] = await req.db.query('SELECT * FROM internaciones_cirugia WHERE id_internacion = ?', [internacion.id]);
+            internacion = { ...internacion, ...cirugiaRows[0] };
+        } else if (internacion.tipo_ingreso === 'derivacion') {
+            const [derivacionRows] = await req.db.query('SELECT * FROM internaciones_derivacion WHERE id_internacion = ?', [internacion.id]);
+            internacion = { ...internacion, ...derivacionRows[0] };
+        } else if (internacion.tipo_ingreso === 'urgencia') {
+            const [urgenciaRows] = await req.db.query('SELECT * FROM internaciones_urgencia WHERE id_internacion = ?', [internacion.id]);
+            internacion = { ...internacion, ...urgenciaRows[0] };
+            // Parsear JSON si aplica
+            if (internacion.primeras_intervenciones) internacion.primeras_intervenciones = JSON.parse(internacion.primeras_intervenciones);
+        }
+
+        res.render('internaciones/comprobante', {
+            title: 'Comprobante de Internación',
+            internacion: internacion,
+            messages: req.flash()
+        });
+
+    } catch (error) {
+        console.error('Error al cargar el comprobante de internación:', error);
+        req.flash('error', 'Error interno del servidor al cargar el comprobante.');
+        res.redirect('/pacientes');
+    }
 });
 
 
