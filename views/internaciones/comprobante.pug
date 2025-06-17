@@ -69,7 +69,7 @@ block content
             .col-md-4
               strong Antecedentes médicos:
             .col-md-8
-              | #{internacion.antecedentes_medicos && internacion.antecedentes_medicos.length > 0 ? internacion.antecedentes_medicos.join(', ') : 'Ninguno'}
+              | #{internacion.antecedentes_medicos || 'Ninguno'}
           .row.mb-3
             .col-md-4
               strong Grupo sanguíneo:
@@ -201,7 +201,7 @@ block content
             .col-md-4
               strong Primeras intervenciones:
             .col-md-8
-              | #{internacion.primeras_intervenciones && internacion.primeras_intervenciones.length > 0 ? internacion.primeras_intervenciones.join(', ') : 'Ninguna'}
+              | #{internacion.primeras_intervenciones || 'Ninguno'}
           .row.mb-3
             .col-md-4
               strong Médico de urgencias:

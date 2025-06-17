@@ -1,5 +1,53 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router()
+
+// Ruta para mostrar el listado de pacientes (GET /pacientes)
+router.get('/', async (req, res, next) => {
+    let connection;
+    try {
+        connection = await req.db.getConnection();
+
+        // Consulta SQL para obtener todos los pacientes con información de seguro y estado de internación
+        const [pacientes] = await connection.query(`
+            SELECT
+                p.id,
+                p.dni,
+                p.nombre,
+                p.apellido,
+                CONCAT(p.apellido, ', ', p.nombre) AS nombre_completo, -- Para mostrar en la tabla
+                p.sexo,
+                p.telefono,
+                p.correo,
+                sm.nombre AS nombre_seguro, -- Nombre del seguro médico
+                p.nro_afiliado,
+                p.fecha_nacimiento, -- Incluir para el formulario de edición si es necesario
+                p.direccion, -- Incluir para el formulario de edición si es necesario
+                p.id_seguro, -- Incluir para el formulario de edición si es necesario
+                -- Determinar si el paciente está internado y obtener el ID de internación activa
+                CASE WHEN i.id IS NOT NULL AND i.fecha_egreso IS NULL THEN 1 ELSE 0 END AS internado,
+                i.id AS id_internacion_actual -- ID de la internación activa (si existe)
+            FROM pacientes p
+            LEFT JOIN seguros_medicos sm ON p.id_seguro = sm.id
+            LEFT JOIN internaciones i ON p.id = i.id_paciente AND i.fecha_egreso IS NULL -- Solo internaciones activas
+            ORDER BY p.apellido, p.nombre ASC
+        `);
+
+        // Obtener mensajes flash para mostrar en el listado
+        const errorEliminar = req.flash('errorEliminar')[0] || null;
+        const mensajeExito = req.flash('mensajeExito')[0] || null;
+
+        res.render('pacientes/listado', {
+            pacientes, // Pasa el array de pacientes modificado a la vista
+            errorEliminar,
+            mensajeExito
+        });
+    } catch (err) {
+        console.error('Error al obtener el listado de pacientes:', err);
+        next(err); // Pasa el error al manejador de errores global
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
 
 // Ruta para mostrar el formulario de nuevo paciente (GET)
 router.get('/nuevo', async (req, res, next) => {
@@ -56,33 +104,6 @@ router.get('/editar/:id', async (req, res, next) => {
         next(err);
     }
 });
-
-// Mostrar todos los pacientes
-router.get('/', async (req, res, next) => {
-    try {
-        const [pacientes] = await req.db.query(`
-            SELECT pacientes.*,
-                   CONCAT(pacientes.apellido, ', ', pacientes.nombre) AS nombre_completo,
-                   seguros_medicos.nombre AS nombre_seguro
-            FROM pacientes
-            LEFT JOIN seguros_medicos ON pacientes.id_seguro = seguros_medicos.id
-        `);
-
-        // Obtener mensajes flash para mostrar en el listado
-        const errorEliminar = req.flash('errorEliminar')[0] || null;
-        const mensajeExito = req.flash('mensajeExito')[0] || null;
-
-
-        res.render('pacientes/listado', {
-            pacientes,
-            errorEliminar, // Pasar el mensaje de error de eliminación
-            mensajeExito // Pasar cualquier mensaje de éxito general
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-
 // Ruta POST para registrar nuevo paciente
 router.post('/nuevo', async (req, res, next) => {
     const {
@@ -226,6 +247,7 @@ router.post('/nuevo', async (req, res, next) => {
     }
 });
 
+
 // Guardar cambios del paciente (Ruta POST ÚNICA)
 router.post('/editar/:id', async (req, res, next) => {
     const pacienteId = req.params.id;
@@ -340,52 +362,82 @@ router.post('/editar/:id', async (req, res, next) => {
 });
 
 
-// Eliminar paciente
+// Eliminar paciente (POST /pacientes/eliminar/:id)
 router.post('/eliminar/:id', async (req, res, next) => {
     const id = req.params.id;
-    // Captura el DNI del campo oculto si se envió, para el mensaje de error
-    const dniPaciente = req.body.dni || 'desconocido';
+    const dniPaciente = req.body.dni || 'desconocido'; // Obtener DNI del formulario si es posible
+    let connection;
     try {
-        await req.db.query('DELETE FROM pacientes WHERE id = ?', [id]);
+        connection = await req.db.getConnection();
+        await connection.beginTransaction();
+
+        // 1. Verificar si el paciente tiene internaciones activas
+        const [activeInternations] = await connection.query(
+            'SELECT id FROM internaciones WHERE id_paciente = ? AND fecha_egreso IS NULL',
+            [id]
+        );
+
+        if (activeInternations.length > 0) {
+            await connection.rollback();
+            req.flash('errorEliminar', `No se puede eliminar el paciente con DNI ${dniPaciente} porque tiene internaciones activas.`);
+            return res.redirect('/pacientes');
+        }
+
+        // 2. Si no hay internaciones activas, eliminar el paciente
+        await connection.query('DELETE FROM pacientes WHERE id = ?', [id]);
+        await connection.commit();
         req.flash('mensajeExito', `Paciente con DNI ${dniPaciente} eliminado con éxito.`);
         res.redirect('/pacientes');
     } catch (err) {
+        if (connection) await connection.rollback();
         console.error(`Error al eliminar paciente con ID ${id}:`, err);
-        // Mejorar manejo de errores de eliminación (ej. FK constraint)
-        if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'ER_NO_REFERENCED_ROW_2' || (err.sqlMessage && err.sqlMessage.includes('a foreign key constraint fails'))) {
-            // Usa req.flash para enviar el mensaje de error a la siguiente solicitud
-            req.flash('errorEliminar', `No se puede eliminar el paciente con DNI ${dniPaciente} porque tiene registros asociados (internaciones, etc.).`);
-            return res.redirect('/pacientes'); // Redirige al listado
+        // Manejar errores de clave foránea si el paciente tiene registros históricos
+        if (err.code === 'ER_ROW_IS_REFERENCED_2' || (err.sqlMessage && err.sqlMessage.includes('a foreign key constraint fails'))) {
+            req.flash('errorEliminar', `No se puede eliminar el paciente con DNI ${dniPaciente} porque tiene registros históricos asociados (internaciones pasadas, etc.).`);
+            return res.redirect('/pacientes');
         }
-        next(err); // Pasa cualquier otro error al manejador de errores global
+        next(err);
+    } finally {
+        if (connection) connection.release();
     }
 });
 
-// Nueva ruta API para buscar pacientes
-// Ahora es simplemente '/buscar' porque el prefijo '/api/pacientes' se añadirá en app.js
-router.get('/buscar', async (req, res) => { // <-- ¡IMPORTANTE! Elimina '/api/pacientes' de aquí
+// Ruta API para buscar pacientes (GET /api/pacientes/buscar?term=...)
+router.get('/buscar', async (req, res, next) => {
     const searchTerm = req.query.term || '';
-    const pool = req.db;
-
+    let connection;
     try {
+        connection = await req.db.getConnection();
         let query = `
-            SELECT p.id, p.dni, CONCAT(p.apellido, ', ', p.nombre) AS nombre_completo,
-                   p.sexo, p.telefono, p.correo, sm.nombre AS nombre_seguro, p.nro_afiliado
+            SELECT
+                p.id,
+                p.dni,
+                p.nombre,
+                p.apellido,
+                CONCAT(p.apellido, ', ', p.nombre) AS nombre_completo,
+                p.sexo,
+                p.telefono,
+                p.correo,
+                sm.nombre AS nombre_seguro,
+                p.nro_afiliado,
+                -- Determinar si el paciente está internado y obtener el ID de internación activa
+                CASE WHEN i.id IS NOT NULL AND i.fecha_egreso IS NULL THEN 1 ELSE 0 END AS internado,
+                i.id AS id_internacion_actual
             FROM pacientes p
             LEFT JOIN seguros_medicos sm ON p.id_seguro = sm.id
+            LEFT JOIN internaciones i ON p.id = i.id_paciente AND i.fecha_egreso IS NULL
             WHERE p.dni LIKE ? OR p.nombre LIKE ? OR p.apellido LIKE ?
             ORDER BY p.apellido, p.nombre ASC
         `;
         const searchPattern = `%${searchTerm}%`;
-        const [rows] = await pool.query(query, [searchPattern, searchPattern, searchPattern]);
+        const [rows] = await connection.query(query, [searchPattern, searchPattern, searchPattern]);
         res.json(rows);
     } catch (err) {
         console.error('Error al buscar pacientes:', err);
-        res.status(500).json({ error: 'Error interno del servidor al buscar pacientes.' });
+        next(err); // Pasa el error al manejador de errores global
+    } finally {
+        if (connection) connection.release();
     }
 });
 
-
-
-
-module.exports = router; 
+module.exports = router;

@@ -1,152 +1,224 @@
 extends ../layout
 
 block content
-  .container.my-5
-    // Mensajes de éxito o error (para eliminación o creación)
-    // Se agregaron las clases dismissible para que los mensajes se puedan cerrar
-    if errorEliminar
-      div(class="alert alert-danger alert-dismissible fade show text-center my-3 animate__animated animate__fadeIn" role="alert")
-        = errorEliminar
-        button(type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close")
-    if mensajeExito
-      div(class="alert alert-success alert-dismissible fade show text-center my-3 animate__animated animate__fadeIn" role="alert")
-        = mensajeExito
-        button(type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close")
+    .container.my-5
+        if errorEliminar
+            div(class="alert alert-danger alert-dismissible fade show text-center my-3 animate__animated animate__fadeIn text-dark" role="alert")
+                = errorEliminar
+                button(type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close")
+        if mensajeExito
+            div(class="alert alert-success alert-dismissible fade show text-center my-3 animate__animated animate__fadeIn text-dark" role="alert")
+                = mensajeExito
+                button(type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close")
 
-    .card.shadow-lg.mx-auto.border-0.rounded-4
-      .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
-        h1.mb-0.display-5 Gestor de Pacientes
+        .card.shadow-lg.mx-auto.border-0.rounded-4
+            .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
+                h1.mb-0.display-5 Gestor de Pacientes
 
-      .card-body.p-4
-        .d-flex.justify-content-between.align-items-center.mb-4
-          // Buscador por DNI o Nombre
-          .input-group.w-50
-            input#searchInput.form-control.rounded-pill(type='text', placeholder='Buscar paciente por DNI, nombre o apellido...')
-            button.btn.btn-outline-secondary.rounded-pill.ms-2(type='button')
-              i.bi.bi-search 
+            .card-body.p-4
+                .d-flex.justify-content-between.align-items-center.mb-4
+                    .input-group.w-50
+                        input#searchInput.form-control.rounded-pill(type='text', placeholder='Buscar paciente por DNI, nombre o apellido...')
+                        button.btn.btn-outline-secondary.rounded-pill.ms-2(type='button' onclick="document.getElementById('searchInput').value = ''; loadAndRenderPacientes('');")
+                            i.bi.bi-x-circle 
+                    
+                    div.d-flex 
+                        a(href='/pacientes/nuevo').btn.btn-success.btn-lg.rounded-pill.shadow-sm.me-2 
+                            i.bi.bi-person-plus-fill.me-2 
+                            | Nuevo Paciente
+                        a(href='/internaciones/nueva').btn.btn-danger.btn-lg.rounded-pill.shadow-sm.me-2
+                            i.bi.bi-clipboard-pulse.me-2
+                            | Emergencia
 
-          // **AQUÍ ESTÁ LA MODIFICACIÓN: BOTONES DE ACCIÓN (Nuevo Paciente y Emergencia)**
-          div.d-flex 
-            // Botón de Nuevo Paciente
-            a(href='/pacientes/nuevo').btn.btn-success.btn-lg.rounded-pill.shadow-sm.me-2 
-              i.bi.bi-person-plus-fill.me-2 
-              | Nuevo Paciente
+                .table-responsive.shadow-sm.rounded-3.overflow-hidden
+                    table.table.table-hover.table-striped.align-middle.mb-0#pacientesTable
+                        thead.table-dark
+                            tr
+                                th DNI
+                                th Apellido, Nombre
+                                th Género
+                                th Teléfono
+                                th Correo
+                                th Seguro Médico
+                                th Nro. Afiliado
+                                th Estado
+                                th Acciones
+                        tbody#pacientesTableBody
+                            
 
-            // **BOTÓN DE EMERGENCIA: Idéntico estilo al de Nuevo Paciente, pero rojo y con icono de ambulancia**
-            a(href='/internaciones/nueva').btn.btn-danger.btn-lg.rounded-pill.shadow-sm.me-2
-              i.bi.bi-clipboard-pulse.me-2
-              | Emergencia
-          // FIN DE LA MODIFICACIÓN
+    .modal.fade#confirmDeleteModal(tabindex='-1', aria-labelledby='confirmDeleteModalLabel', aria-hidden='true')
+        .modal-dialog
+            .modal-content
+                .modal-header.bg-danger.text-white
+                    h5.modal-title#confirmDeleteModalLabel Confirmar Eliminación
+                    button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
+                .modal-body.text-dark
+                    p ¿Estás seguro que deseas eliminar al paciente <strong id="pacienteNombre"></strong>?
+                .modal-footer
+                    button.btn.btn-secondary(type="button" data-bs-dismiss="modal") Cancelar
+                    form#deleteForm(method="POST" class="d-inline") 
+                        button.btn.btn-danger(type="submit") Eliminar
 
-        .table-responsive.shadow-sm.rounded-3.overflow-hidden
-          table.table.table-hover.table-striped.align-middle.mb-0#pacientesTable
-            thead.table-dark
-              tr
-                th DNI
-                th Apellido, Nombre
-                th Genero
-                th Teléfono
-                th Correo
-                th Seguro Médico
-                th Nro. Afiliado
-                th Acciones
-            tbody#pacientesTableBody
-              each paciente in pacientes
-                tr
-                  td= paciente.dni
-                  td
-                    a(href='/pacientes/editar/' + paciente.id).text-decoration-none.fw-bold= paciente.nombre_completo
-                  td= paciente.sexo
-                  td= paciente.telefono || '-'
-                  td= paciente.correo || '-'
-                  td= paciente.nombre_seguro || 'N/A'
-                  td= paciente.nro_afiliado || '-'
-                  td
-                    .d-flex.justify-content-center
-                      a(href='/pacientes/editar/' + paciente.id).btn.btn-sm.btn-info.text-white.rounded-circle.shadow-sm(data-bs-toggle='tooltip', title='Editar Paciente')
-                        i.bi.bi-pencil-square 
-                      // Si quieres un botón de eliminar visible en la tabla con icono
-                      // button(type="button" class="btn btn-sm btn-danger text-white rounded-circle shadow-sm ms-2" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id=paciente.id data-dni=paciente.dni title="Eliminar Paciente")
-                      //   i.bi.bi-trash
+    .modal.fade#confirmAltaModal(tabindex='-1', aria-labelledby='confirmAltaModalLabel', aria-hidden='true')
+        .modal-dialog
+            .modal-content
+                .modal-header.bg-warning.text-dark
+                    h5.modal-title#confirmAltaModalLabel Confirmar Alta
+                    button.btn-close(type='button', data-bs-dismiss='modal', aria-label='Close')
+                .modal-body.text-dark
+                    p ¿Estás seguro que deseas dar de alta al paciente <strong id="pacienteNombreAlta"></strong>?
+                    form#altaForm(method="POST")
+                        .mb-3
+                            label(for="motivo_alta" class="form-label") Motivo de Alta:
+                            select(name="motivo_alta" required class="form-select" id="motivo_alta")
+                                option(value="") -- Selecciona un motivo --
+                                option(value="Alta Medica") Alta Médica 
+                                option(value="Alta Voluntaria") Alta Voluntaria
+                                option(value="Traslado a Otro Centro") Traslado a Otro Centro
+                                option(value="Fallecimiento") Fallecimiento
+                        .modal-footer
+                            button.btn.btn-secondary.text-dark(type="button" data-bs-dismiss="modal") Cancelar
+                            button.btn.btn-warning.text-dark(type="submit") Registrar Alta
 
-              else
-                tr
-                  td(colspan="8").text-center.py-4
-                    p.lead.text-muted No hay pacientes registrados.
-                    p.text-muted Haz clic en "Nuevo Paciente" para comenzar.
-
-    // Script para inicializar Tooltips y la búsqueda en tiempo real
+block scripts
     script.
-      document.addEventListener('DOMContentLoaded', function () {
-        // Inicializar Tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl)
-        });
-
-        // Lógica de Búsqueda en Tiempo Real
-        const searchInput = document.getElementById('searchInput');
-        const pacientesTableBody = document.getElementById('pacientesTableBody');
-
-        searchInput.addEventListener('keyup', async function() {
-          const searchTerm = this.value;
-          try {
-            // Realiza una petición AJAX al servidor
-            const response = await fetch(`/api/pacientes/buscar?term=${encodeURIComponent(searchTerm)}`);
-            const pacientes = await response.json();
-
-            pacientesTableBody.innerHTML = ''; // Limpia el cuerpo de la tabla actual
-
-            if (pacientes.length > 0) {
-              // Si hay resultados, construye las filas
-              pacientes.forEach(paciente => {
-                const row = `
-                  <tr>
-                    <td>${paciente.dni}</td>
-                    <td><a href="/pacientes/editar/${paciente.id}" class="text-decoration-none fw-bold">${paciente.nombre_completo}</a></td>
-                    <td>${paciente.sexo}</td>
-                    <td>${paciente.telefono || '-'}</td>
-                    <td>${paciente.correo || '-'}</td>
-                    <td>${paciente.nombre_seguro || 'N/A'}</td>
-                    <td>${paciente.nro_afiliado || '-'}</td>
-                    <td>
-                      <div class="d-flex justify-content-center">
-                        <a href="/pacientes/editar/${paciente.id}" class="btn btn-sm btn-info text-white rounded-circle shadow-sm" data-bs-toggle="tooltip" title="Editar Paciente">
-                          <i class="bi bi-pencil-square"></i>
-                        </a>
-                        </div>
-                    </td>
-                  </tr>
-                `;
-                pacientesTableBody.insertAdjacentHTML('beforeend', row); // Añade la nueva fila
-              });
-            } else {
-              // Si no hay resultados, muestra un mensaje
-              pacientesTableBody.innerHTML = `
-                <tr>
-                  <td colspan="8" class="text-center py-4">
-                    <p class="lead text-muted">No se encontraron pacientes que coincidan con la búsqueda.</p>
-                  </td>
-                </tr>
-              `;
-            }
-
-            // Re-inicializa los tooltips para los nuevos elementos (si los hay)
-            var newTooltipTriggerList = [].slice.call(pacientesTableBody.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            newTooltipTriggerList.map(function (tooltipTriggerEl) {
-              return new bootstrap.Tooltip(tooltipTriggerEl)
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteModal = document.getElementById('confirmDeleteModal');
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const pacienteId = button.getAttribute('data-id');
+                const pacienteNombre = button.getAttribute('data-nombre');
+                const form = document.getElementById('deleteForm');
+                form.setAttribute('action', `/pacientes/eliminar/${pacienteId}`);
+                document.getElementById('pacienteNombre').innerText = pacienteNombre;
             });
 
-          } catch (error) {
-            console.error('Error al buscar pacientes:', error);
-            // Opcional: mostrar un mensaje de error al usuario
-            pacientesTableBody.innerHTML = `
-              <tr>
-                <td colspan="8" class="text-center py-4 text-danger">
-                  <p>Error al cargar pacientes. Inténtalo de nuevo más tarde.</p>
-                </td>
-              </tr>
-            `;
-          }
+            const altaModal = document.getElementById('confirmAltaModal');
+            altaModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const pacienteNombre = button.getAttribute('data-nombre');
+                const idInternacion = button.getAttribute('data-id-internacion'); 
+                const form = document.getElementById('altaForm');
+                form.setAttribute('action', `/internaciones/egresar/${idInternacion}`); 
+                document.getElementById('pacienteNombreAlta').innerText = pacienteNombre;
+                document.getElementById('motivo_alta').value = ""; 
+            });
+
+            function initializeTooltips() {
+                const existingTooltips = document.querySelectorAll('.tooltip');
+                existingTooltips.forEach(tooltip => tooltip.remove());
+
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+
+            const searchInput = document.getElementById('searchInput');
+            const pacientesTableBody = document.getElementById('pacientesTableBody');
+
+            async function createPacienteRow(paciente) {
+                const internadoRes = await fetch(`/internaciones/api/estado/${paciente.id}`);
+                const estado = await internadoRes.json(); 
+
+                let estadoBadgeHtml = '';
+                let altaButton = ''; 
+
+                if (estado.internado) {
+                    estadoBadgeHtml = `
+                        <a href="/internaciones/comprobante/${estado.id_internacion}" 
+                           class="btn btn-warning btn-sm" 
+                           data-bs-toggle="tooltip" title="Ver Comprobante de Internación">
+                            Internado
+                        </a>
+                    `;
+                    altaButton = `
+                        <button type="button" class="btn btn-sm btn-warning text-white rounded-circle shadow-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#confirmAltaModal" 
+                                data-id="${paciente.id}" 
+                                data-nombre="${paciente.nombre_completo}" 
+                                data-id-internacion="${estado.id_internacion}" 
+                                title="Registrar Alta">
+                            <i class="bi bi-box-arrow-up"></i>
+                        </button>
+                    `;
+                } else {
+                    estadoBadgeHtml = `
+                        <a href="/pacientes/editar/${paciente.id}" class="badge bg-success text-decoration-none" 
+                            data-bs-toggle="tooltip" title="Ver/Editar Paciente para Internar">
+                            No internado
+                        </a>
+                    `;
+                    altaButton = ''; 
+                }
+
+                return `
+                    <tr>
+                        <td>${paciente.dni}</td>
+                        <td><a href="/pacientes/editar/${paciente.id}" class="text-decoration-none fw-bold">${paciente.apellido}, ${paciente.nombre}</a></td>
+                        <td>${paciente.sexo}</td>
+                        <td>${paciente.telefono || '-'}</td>
+                        <td>${paciente.correo || '-'}</td>
+                        <td>${paciente.nombre_seguro || 'N/A'}</td>
+                        <td>${paciente.nro_afiliado || '-'}</td>
+                        <td>${estadoBadgeHtml}</td> 
+                        <td>
+                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                ${altaButton} 
+                                <a href="/pacientes/editar/${paciente.id}" class="btn btn-sm btn-info text-white rounded-circle shadow-sm" data-bs-toggle="tooltip" title="Editar Paciente">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger text-white rounded-circle shadow-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="${paciente.id}" data-nombre="${paciente.nombre_completo}" title="Eliminar Paciente">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            async function loadAndRenderPacientes(searchTerm = '') {
+                try {
+                    const response = await fetch(`/api/pacientes/buscar?term=${encodeURIComponent(searchTerm)}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const pacientes = await response.json();
+
+                    pacientesTableBody.innerHTML = ''; 
+
+                    if (pacientes.length > 0) {
+                        for (const paciente of pacientes) {
+                            const row = await createPacienteRow(paciente);
+                            pacientesTableBody.insertAdjacentHTML('beforeend', row);
+                        }
+                    } else {
+                        pacientesTableBody.innerHTML = `
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <p class="lead text-muted">No se encontraron pacientes que coincidan con la búsqueda.</p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    initializeTooltips(); 
+                } catch (error) {
+                    console.error('Error al cargar/buscar pacientes:', error);
+                    pacientesTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-danger">
+                                <p>Error al cargar pacientes. Inténtalo de nuevo más tarde.</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+
+            loadAndRenderPacientes();
+
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.trim();
+                loadAndRenderPacientes(searchTerm);
+            });
         });
-      });

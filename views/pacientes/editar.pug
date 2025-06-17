@@ -5,7 +5,7 @@ block content
   .container.my-5
     .card.shadow-lg.mx-auto.border-0.rounded-4(style="max-width: 800px;")
       .card-header.bg-gradient.bg-warning.text-white.text-center.py-4.rounded-top-4
-        h1.mb-0.display-5 Verificar Datos
+        h1.mb-0.display-5 Datos del Paciente
 
       .card-body.p-5
         // Formulario de edición
@@ -139,7 +139,7 @@ block content
               if errores && errores.id_seguro
                 .invalid-feedback= errores.id_seguro
 
-            // Número de Afiliado Field (Validación condicional en JS/Backend)
+            
             .col-md-6.form-floating
               input.form-control(
                 type='text',
@@ -152,7 +152,7 @@ block content
               if errores && errores.nro_afiliado
                 .invalid-feedback= errores.nro_afiliado
 
-          // Messages (Success/Error)
+          
           if mensajeExito
             .alert.alert-success.mt-4.text-center= mensajeExito
           if errores && Object.keys(errores).length > 0 && !errores.general
@@ -164,7 +164,7 @@ block content
             .alert.alert-danger.mt-4.text-center= errores.general
 
 
-          // Buttons section para GUARDAR (dentro del formulario de edición)
+          
           .d-flex.justify-content-center.gap-3.pt-4.mt-4.border-top
             a(href='/pacientes').btn.btn-secondary.btn-lg.rounded-pill
               i.bi.bi-arrow-left-circle.me-2
@@ -174,14 +174,8 @@ block content
               i.bi.bi-check-circle-fill.me-2
               | Confirmar Datos
 
-        // Formulario de ELIMINAR (fuera del formulario de edición)
-        form#formEliminarPaciente(action="/pacientes/eliminar/" + paciente.id, method="POST", class="mt-4 text-center")
-          // Agrega un campo oculto para el DNI si quieres pasarlo al backend para el mensaje de error
-          input(type="hidden", name="dni", value=paciente.dni) 
-          button(type='submit').btn.btn-danger.btn-lg.rounded-pill(onclick="return confirm('¿Estás seguro de que quieres eliminar a ' + '#{paciente.nombre}' + ' ' + '#{paciente.apellido}' + '? Esta acción es irreversible.');") 🗑️ Eliminar Paciente
 
-
-  // Client-side validation script (adaptado para edición)
+  
   script.
     (function () {
       'use strict'

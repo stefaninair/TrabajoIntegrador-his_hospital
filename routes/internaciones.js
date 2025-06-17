@@ -3,36 +3,36 @@ const router = express.Router();
 
 // Ruta para mostrar el formulario de nueva internación (Paso 1: GET)
 router.get('/nueva/:id_paciente', async (req, res) => {
-  const { id_paciente } = req.params;
+    const { id_paciente } = req.params;
 
-  try {
-    const [pacienteResult] = await req.db.query('SELECT * FROM pacientes WHERE id = ?', [id_paciente]);
-    const paciente = pacienteResult[0];
+    try {
+        const [pacienteResult] = await req.db.query('SELECT * FROM pacientes WHERE id = ?', [id_paciente]);
+        const paciente = pacienteResult[0];
 
-    if (!paciente) {
-      req.flash('error', 'Paciente no encontrado.');
-      return res.redirect('/pacientes');
+        if (!paciente) {
+            req.flash('error', 'Paciente no encontrado.');
+            return res.redirect('/pacientes');
+        }
+
+        const [activeInternations] = await req.db.query(
+            'SELECT id FROM internaciones WHERE id_paciente = ? AND fecha_egreso IS NULL',
+            [id_paciente]
+        );
+        if (activeInternations.length > 0) {
+            req.flash('error', 'El paciente ya tiene una internación activa.');
+            return res.redirect('/pacientes');
+        }
+
+        res.render('internaciones/nueva', {
+            title: 'Nueva Internación',
+            paciente: paciente,
+            messages: req.flash()
+        });
+    } catch (error) {
+        console.error('Error al cargar la página de internación (Paso 1):', error);
+        req.flash('error', 'Error interno del servidor al cargar la página de internación.');
+        res.redirect('/pacientes');
     }
-
-    const [activeInternations] = await req.db.query(
-      'SELECT id FROM internaciones WHERE id_paciente = ? AND fecha_egreso IS NULL',
-      [id_paciente]
-    );
-    if (activeInternations.length > 0) {
-      req.flash('error', 'El paciente ya tiene una internación activa.');
-      return res.redirect('/pacientes');
-    }
-
-    res.render('internaciones/nueva', {
-      title: 'Nueva Internación',
-      paciente: paciente,
-      messages: req.flash()
-    });
-  } catch (error) {
-    console.error('Error al cargar la página de internación (Paso 1):', error);
-    req.flash('error', 'Error interno del servidor al cargar la página de internación.');
-    res.redirect('/pacientes');
-  }
 });
 
 // Ruta POST: Procesar el formulario de nueva.pug (Paso 1 POST)
@@ -84,7 +84,7 @@ router.get('/seleccionar-cama/:id_paciente', async (req, res) => {
   }
 });
 
-// Rutas API para carga dinámica (AJAX)
+/// Rutas API para carga dinámica (AJAX)
 router.get('/api/habitaciones-por-ala/:alaId', async (req, res) => {
   try {
     const alaId = req.params.alaId;
@@ -219,7 +219,7 @@ router.post('/finalizar-internacion/:id_paciente', async (req, res) => {
       `, [
         nuevaInternacionId,
         otrosDatosInternacion.semanas_gestacion || null,
-        JSON.stringify(otrosDatosInternacion.antecedentes_medicos || []),
+        otrosDatosInternacion.antecedentes_medicos || null,
         otrosDatosInternacion.grupo_sanguineo || null,
         otrosDatosInternacion.factor_rh || null,
         otrosDatosInternacion.resultados_estudios || null,
@@ -275,7 +275,7 @@ router.post('/finalizar-internacion/:id_paciente', async (req, res) => {
         otrosDatosInternacion.sintomas_al_ingreso || null,
         otrosDatosInternacion.signos_vitales_ingreso || null,
         otrosDatosInternacion.nivel_conciencia || null,
-        JSON.stringify(otrosDatosInternacion.primeras_intervenciones || []),
+        otrosDatosInternacion.primeras_intervenciones || null,
         otrosDatosInternacion.nombre_medico_urgencias || null
       ]);
     }
@@ -334,9 +334,7 @@ router.get('/comprobante/:id_internacion', async (req, res) => {
         if (internacion.tipo_ingreso === 'maternidad') {
             const [maternidadRows] = await req.db.query('SELECT * FROM internaciones_maternidad WHERE id_internacion = ?', [internacion.id]);
             internacion = { ...internacion, ...maternidadRows[0] }; // Fusionar datos
-            // Parsear JSON si aplica
-            if (internacion.antecedentes_medicos) internacion.antecedentes_medicos = JSON.parse(internacion.antecedentes_medicos);
-        } else if (internacion.tipo_ingreso === 'cirugia') {
+        }  if (internacion.tipo_ingreso === 'cirugia') {
             const [cirugiaRows] = await req.db.query('SELECT * FROM internaciones_cirugia WHERE id_internacion = ?', [internacion.id]);
             internacion = { ...internacion, ...cirugiaRows[0] };
         } else if (internacion.tipo_ingreso === 'derivacion') {
@@ -345,8 +343,7 @@ router.get('/comprobante/:id_internacion', async (req, res) => {
         } else if (internacion.tipo_ingreso === 'urgencia') {
             const [urgenciaRows] = await req.db.query('SELECT * FROM internaciones_urgencia WHERE id_internacion = ?', [internacion.id]);
             internacion = { ...internacion, ...urgenciaRows[0] };
-            // Parsear JSON si aplica
-            if (internacion.primeras_intervenciones) internacion.primeras_intervenciones = JSON.parse(internacion.primeras_intervenciones);
+            
         }
 
         res.render('internaciones/comprobante', {
@@ -359,6 +356,95 @@ router.get('/comprobante/:id_internacion', async (req, res) => {
         console.error('Error al cargar el comprobante de internación:', error);
         req.flash('error', 'Error interno del servidor al cargar el comprobante.');
         res.redirect('/pacientes');
+    }
+});
+
+// NUEVA API: Saber si el paciente está internado (usado para mostrar en listado)
+router.get('/api/estado/:id_paciente', async (req, res) => {
+    try {
+        const { id_paciente } = req.params;
+        // Buscamos internaciones activas (donde fecha_egreso es NULL)
+        const [rows] = await req.db.query(
+            'SELECT id FROM internaciones WHERE id_paciente = ? AND fecha_egreso IS NULL',
+            [id_paciente]
+        );
+
+        if (rows.length > 0) {
+            // Si hay una internación activa, devolvemos internado: true y el ID de esa internación.
+            res.json({ internado: true, id_internacion: rows[0].id });
+        } else {
+            // Si no hay internaciones activas, devolvemos internado: false.
+            res.json({ internado: false });
+        }
+    } catch (err) {
+        console.error('Error al verificar internación:', err);
+        res.status(500).json({ error: 'Error al verificar internación' });
+    }
+});
+
+// Ruta para procesar el egreso/alta de un paciente
+router.post('/egresar/:idInternacion', async (req, res) => {
+    const { idInternacion } = req.params;
+    const { motivo_alta } = req.body; // Obtiene el motivo de alta del formulario
+
+    // Validación básica
+    if (!idInternacion || isNaN(Number(idInternacion))) {
+        req.flash('errorEliminar', 'ID de internación no válido para el alta.'); // Usamos flash para notificaciones
+        return res.redirect('/pacientes');
+    }
+    if (!motivo_alta || motivo_alta.trim() === '') {
+        req.flash('errorEliminar', 'Debe seleccionar un motivo de alta.'); // Notifica si no hay motivo
+        return res.redirect(`/internaciones/comprobante/${idInternacion}`);
+    }
+
+    let connection;
+    try {
+        connection = await req.db.getConnection();
+        await connection.beginTransaction(); // Iniciar transacción para asegurar atomicidad
+
+        // 1. Obtener los datos de la internación actual, incluida la cama y el paciente
+        // Aseguramos que la internación exista y esté activa (fecha_egreso IS NULL)
+        const [internacionResult] = await connection.query(
+            `SELECT id_cama, id_paciente FROM internaciones WHERE id = ? AND fecha_egreso IS NULL`,
+            [idInternacion]
+        );
+
+        if (internacionResult.length === 0) {
+            req.flash('errorEliminar', 'Internación no encontrada o ya ha sido egresada.');
+            await connection.rollback();
+            return res.redirect('/pacientes');
+        }
+
+        const { id_cama, id_paciente } = internacionResult[0];
+
+        // 2. Actualizar la internación (establecer fecha_egreso y motivo_alta)
+        await connection.query(
+            `UPDATE internaciones SET fecha_egreso = NOW(), motivo_alta = ? WHERE id = ?`,
+            [motivo_alta, idInternacion]
+        );
+
+        // 3. Liberar la cama (estado = 'libre', id_paciente_actual = NULL, higienizada = 0 para indicar que necesita limpieza)
+        await connection.query(
+            `UPDATE camas SET estado = 'libre', id_paciente_actual = NULL, higienizada = 0 WHERE id = ?`,
+            [id_cama]
+        );
+
+        // 4. Actualizar el estado del paciente (internado = 0)
+        await connection.query(
+            `UPDATE pacientes SET internado = 0 WHERE id = ?`,
+            [id_paciente]
+        );
+
+        await connection.commit(); // Confirmar la transacción
+        req.flash('mensajeExito', 'Paciente dado de alta exitosamente y cama liberada.');
+        res.redirect('/pacientes'); // Redirige de vuelta al listado de pacientes
+    } catch (error) {
+        if (connection) await connection.rollback(); // Revertir transacción en caso de error
+        console.error('Error al egresar paciente:', error);
+        req.flash('errorEliminar', 'Error interno del servidor al dar de alta al paciente.');
+        res.redirect('/pacientes'); // O a una página de error más específica
+    } finally {
+        if (connection) connection.release(); // Liberar la conexión al pool
     }
 });
 
