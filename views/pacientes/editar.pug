@@ -21,10 +21,12 @@ block content
                 placeholder='DNI',
                 value=paciente.dni || '',
                 required,
-                readonly, 
+                disabled=(!isTempDni),
                 class=(errores && errores.dni ? 'is-invalid' : '')
               )
               label(for='dni') DNI
+              if isTempDni 
+                small.form-text.text-muted Este es un DNI provisional de emergencia. Por favor, ingrese el DNI real.
               if errores && errores.dni
                 .invalid-feedback= errores.dni
 
@@ -258,6 +260,33 @@ block content
           if (document.querySelectorAll('.is-invalid').length > 0) {
               form.classList.add('was-validated');
           }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          const seguroMedicoSelect = document.getElementById('seguro_medico');
+          const numeroAfiliadoInput = document.getElementById('numero_afiliado');
+
+          if (seguroMedicoSelect && numeroAfiliadoInput) {
+              // Función para manejar el estado del campo de número de afiliado
+              function manejarNumeroAfiliado() {
+                  if (seguroMedicoSelect.value === 'Particular') {
+                      numeroAfiliadoInput.value = ''; // Vaciar el campo
+                      numeroAfiliadoInput.readOnly = true; // Hacerlo de solo lectura
+                      numeroAfiliadoInput.removeAttribute('required'); // Quitar la validación de requerido
+                      numeroAfiliadoInput.placeholder = 'No aplica para Particular';
+                  } else {
+                      numeroAfiliadoInput.readOnly = false; // Habilitar el campo
+                      numeroAfiliadoInput.setAttribute('required', 'required'); // Volver a poner como requerido
+                      numeroAfiliadoInput.placeholder = 'Ingrese número de afiliado';
+                  }
+              }
+
+              // Llamar a la función al cargar la página (por si ya viene preseleccionado "Particular")
+              manejarNumeroAfiliado();
+
+              // Añadir el evento 'change' al select
+              seguroMedicoSelect.addEventListener('change', manejarNumeroAfiliado);
+          }
+      });
       });
     })()
     

@@ -1,0 +1,149 @@
+extends ../layout
+
+block content
+  style.
+    /* Estilos personalizados para ajustar el espaciado del checkbox de anónimo */
+    .form-check-inline-tight {
+      display: flex; /* Usar flexbox para control de alineación */
+      align-items: center; /* Alinear verticalmente el checkbox y el texto */
+      margin-bottom: 0.5rem !important; /* Mantener un margen inferior reducido */
+      gap: 0.25rem; /* Añadir un pequeño espacio entre el checkbox y el label */
+    }
+    .form-check-inline-tight .form-check-input {
+      margin-right: 0; /* Eliminar el margen por defecto del input */
+    }
+    .form-check-inline-tight .form-check-label {
+      padding-left: 0; /* Eliminar el padding por defecto del label */
+    }
+    /* Asegurarse de que el label no ocupe más espacio del necesario */
+    .form-check-inline-tight label {
+      line-height: 1.2; /* Ajustar la altura de línea si es necesario */
+    }
+
+
+  .container.mt-4
+    .card
+      .card-header.bg-danger.text-white
+        h2.mb-0 Registro de Emergencia
+      .card-body
+        if errores.general
+          .alert.alert-danger= errores.general
+
+        form(action="/emergencias", method="POST")
+          // Checkbox para paciente anónimo más cerca de su texto
+          // Eliminamos .mb-3 aquí si la clase form-check-inline-tight ya lo maneja
+          .form-check.form-check-inline-tight
+            input.form-check-input(type="checkbox", id="es_anonimo", name="es_anonimo", checked=(es_anonimo ? true : false))
+            label.form-check-label(for="es_anonimo") Paciente sin identificar (Anónimo)
+
+          // Fila 1: DNI y Nombre
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="dni_ingresado") DNI / Identificador Provisional:
+              input.form-control(type="text", id="dni_ingresado", name="dni_ingresado", value=dni_ingresado, placeholder=(es_anonimo ? 'Se generará un ID temporal' : 'DNI del paciente'), disabled=(es_anonimo ? true : false))
+              if errores.dni_ingresado
+                .text-danger.mt-1= errores.dni_ingresado
+            .col-md-6.mb-3
+              label.form-label(for="nombre_temp") Nombre (si se conoce):
+              input.form-control(type="text", id="nombre_temp", name="nombre_temp", value=nombre_temp, placeholder=(es_anonimo ? 'Se asignará "Paciente Anónimo"' : ''), disabled=(es_anonimo ? true : false))
+              if errores.nombre_temp
+                .text-danger.mt-1= errores.nombre_temp
+
+          // Fila 2: Apellido y Género
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="apellido_temp") Apellido (si se conoce):
+              input.form-control(type="text", id="apellido_temp", name="apellido_temp", value=apellido_temp, disabled=(es_anonimo ? true : false))
+              if errores.apellido_temp
+                .text-danger.mt-1= errores.apellido_temp
+            .col-md-6.mb-3
+              label.form-label(for="sexo") Género:
+              select.form-select(id="sexo", name="sexo", required)
+                option(value="") Seleccione...
+                option(value="M", selected=(sexo === 'M')) Masculino
+                option(value="F", selected=(sexo === 'F')) Femenino
+              if errores.sexo
+                .text-danger.mt-1= errores.sexo
+
+          // Fila 3: Contextura Física y Sala de Emergencia Destino (AHORA JUNTOS)
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="contextura_fisica") Contextura Física:
+              select.form-select(id="contextura_fisica", name="contextura_fisica", required)
+                option(value="") Seleccione...
+                option(value="Delgado", selected=(contextura_fisica === 'Delgado')) Delgado
+                option(value="Normal", selected=(contextura_fisica === 'Normal')) Normal
+                option(value="Robusto", selected=(contextura_fisica === 'Robusto')) Robusto
+                option(value="Obeso", selected=(contextura_fisica === 'Obeso')) Obeso
+                option(value="No aplica/Desconocido", selected=(contextura_fisica === 'No aplica/Desconocido')) No aplica/Desconocido
+              if errores.contextura_fisica
+                .text-danger.mt-1= errores.contextura_fisica
+            .col-md-6.mb-3
+              label.form-label(for="id_sala_emergencia") Sala de Emergencia Destino:
+              select.form-select(id="id_sala_emergencia", name="id_sala_emergencia", required)
+                option(value="") Seleccione una sala...
+                each sala in salas
+                  option(value=sala.id, selected=(id_sala_emergencia == sala.id))= sala.nombre
+              if errores.id_sala_emergencia
+                .text-danger.mt-1= errores.id_sala_emergencia
+
+          // Fila 4: Motivo de la Emergencia (ocupa toda la fila para mayor espacio)
+          .mb-3
+            label.form-label(for="motivo_emergencia") Motivo de la Emergencia:
+            textarea.form-control(id="motivo_emergencia", name="motivo_emergencia", rows="4", required)= motivo_emergencia
+            if errores.motivo_emergencia
+              .text-danger.mt-1= errores.motivo_emergencia
+
+          button.btn.btn-danger(type="submit") Registrar Emergencia y Crear Paciente
+          a.btn.btn-secondary.ms-2(href="/pacientes") Cancelar
+
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const esAnonimoCheckbox = document.getElementById('es_anonimo');
+      const dniInput = document.getElementById('dni_ingresado');
+      const nombreInput = document.getElementById('nombre_temp');
+      const apellidoInput = document.getElementById('apellido_temp');
+
+      function toggleFields() {
+        const isDisabled = esAnonimoCheckbox.checked;
+        dniInput.disabled = isDisabled;
+        nombreInput.disabled = isDisabled;
+        apellidoInput.disabled = isDisabled;
+
+        if (isDisabled) {
+          dniInput.value = '';
+          dniInput.placeholder = 'Se generará un ID temporal';
+          nombreInput.value = 'Paciente Anónimo';
+          nombreInput.placeholder = 'Se asignará "Paciente Anónimo"';
+          apellidoInput.value = 'Desconocido'; // Valor temporal para el apellido
+          apellidoInput.placeholder = 'Se asignará "Desconocido"';
+        } else {
+          if (dniInput.dataset.originalValue && dniInput.dataset.originalValue !== 'null') {
+            dniInput.value = dniInput.dataset.originalValue;
+          } else {
+            dniInput.value = '';
+          }
+          if (nombreInput.dataset.originalValue && nombreInput.dataset.originalValue !== 'null' && nombreInput.dataset.originalValue !== 'Paciente Anónimo') {
+            nombreInput.value = nombreInput.dataset.originalValue;
+          } else {
+            nombreInput.value = '';
+          }
+          if (apellidoInput.dataset.originalValue && apellidoInput.dataset.originalValue !== 'null' && apellidoInput.dataset.originalValue !== 'Desconocido') {
+            apellidoInput.value = apellidoInput.dataset.originalValue;
+          } else {
+            apellidoInput.value = '';
+          }
+
+          dniInput.placeholder = 'DNI del paciente';
+          nombreInput.placeholder = '';
+          apellidoInput.placeholder = '';
+        }
+      }
+
+      dniInput.dataset.originalValue = dniInput.value;
+      nombreInput.dataset.originalValue = nombreInput.value;
+      apellidoInput.dataset.originalValue = apellidoInput.value;
+
+      esAnonimoCheckbox.addEventListener('change', toggleFields);
+      toggleFields();
+    });

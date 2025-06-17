@@ -1,261 +1,294 @@
-const router = require('express').Router()
+const router = require('express').Router();
+const moment = require('moment'); // Asegúrate de que moment esté instalado y requerido
 
 // Ruta para mostrar el listado de pacientes (GET /pacientes)
 router.get('/', async (req, res, next) => {
     let connection;
     try {
         connection = await req.db.getConnection();
-
-        // Consulta SQL para obtener todos los pacientes con información de seguro y estado de internación
         const [pacientes] = await connection.query(`
-            SELECT
-                p.id,
-                p.dni,
-                p.nombre,
-                p.apellido,
-                CONCAT(p.apellido, ', ', p.nombre) AS nombre_completo, -- Para mostrar en la tabla
-                p.sexo,
-                p.telefono,
-                p.correo,
-                sm.nombre AS nombre_seguro, -- Nombre del seguro médico
-                p.nro_afiliado,
-                p.fecha_nacimiento, -- Incluir para el formulario de edición si es necesario
-                p.direccion, -- Incluir para el formulario de edición si es necesario
-                p.id_seguro, -- Incluir para el formulario de edición si es necesario
-                -- Determinar si el paciente está internado y obtener el ID de internación activa
-                CASE WHEN i.id IS NOT NULL AND i.fecha_egreso IS NULL THEN 1 ELSE 0 END AS internado,
-                i.id AS id_internacion_actual -- ID de la internación activa (si existe)
+            SELECT 
+                p.id, 
+                p.dni, 
+                p.nombre, 
+                p.apellido, 
+                p.fecha_nacimiento, 
+                p.sexo, 
+                p.direccion, 
+                p.telefono, 
+                p.correo, 
+                p.id_seguro, 
+                sm.nombre AS nombre_seguro, 
+                p.nro_afiliado, 
+                p.estado_atencion,
+                p.id_emergencia_origen,
+                e.motivo_emergencia, 
+                e.fecha_hora_ingreso AS fecha_emergencia,
+                e.es_anonimo,
+                i.id AS id_internacion_actual,
+                i.fecha_ingreso AS fecha_ingreso_internacion
             FROM pacientes p
             LEFT JOIN seguros_medicos sm ON p.id_seguro = sm.id
-            LEFT JOIN internaciones i ON p.id = i.id_paciente AND i.fecha_egreso IS NULL -- Solo internaciones activas
-            ORDER BY p.apellido, p.nombre ASC
+            LEFT JOIN emergencias e ON p.id_emergencia_origen = e.id
+            LEFT JOIN internaciones i ON p.id = i.id_paciente AND i.fecha_egreso IS NULL
+            ORDER BY p.apellido ASC, p.nombre ASC
         `);
 
-        // Obtener mensajes flash para mostrar en el listado
-        const errorEliminar = req.flash('errorEliminar')[0] || null;
-        const mensajeExito = req.flash('mensajeExito')[0] || null;
+        pacientes.forEach(paciente => {
+            if (paciente.fecha_nacimiento) {
+                paciente.fecha_nacimiento_formatted = moment(paciente.fecha_nacimiento).format('YYYY-MM-DD');
+            }
+            paciente.nombre_completo = `${paciente.apellido || ''}, ${paciente.nombre || ''}`.trim();
+        });
 
         res.render('pacientes/listado', {
-            pacientes, // Pasa el array de pacientes modificado a la vista
-            errorEliminar,
-            mensajeExito
+            pacientes: pacientes,
+            errorEliminar: req.flash('error')[0],
+            mensajeExito: req.flash('mensajeExito')[0]
         });
     } catch (err) {
         console.error('Error al obtener el listado de pacientes:', err);
-        next(err); // Pasa el error al manejador de errores global
+        next(err);
     } finally {
         if (connection) connection.release();
     }
 });
 
-
-// Ruta para mostrar el formulario de nuevo paciente (GET)
-router.get('/nuevo', async (req, res, next) => {
+// Ruta API para buscar pacientes (GET /pacientes/buscar)
+router.get('/buscar', async (req, res, next) => {
+    const searchTerm = req.query.term ? `%${req.query.term}%` : '%';
+    let connection;
     try {
-        const [seguros] = await req.db.query('SELECT id, nombre FROM seguros_medicos');
-        // Usamos req.flash para mensajes flash de una sola vez
-        const errores = req.flash('errores')[0] || {}; // Obtener errores si existen
-        const oldInput = req.flash('oldInput')[0] || {}; // Obtener datos antiguos si existen
+        connection = await req.db.getConnection();
+        const [pacientes] = await connection.query(`
+            SELECT 
+                p.id, 
+                p.dni, 
+                p.nombre, 
+                p.apellido, 
+                p.fecha_nacimiento, 
+                p.sexo, 
+                p.direccion, 
+                p.telefono, 
+                p.correo, 
+                p.id_seguro, 
+                sm.nombre AS nombre_seguro, 
+                p.nro_afiliado, 
+                p.estado_atencion,
+                p.id_emergencia_origen,
+                e.motivo_emergencia, 
+                e.fecha_hora_ingreso AS fecha_emergencia,
+                e.es_anonimo,
+                i.id AS id_internacion_actual,
+                i.fecha_ingreso AS fecha_ingreso_internacion
+            FROM pacientes p
+            LEFT JOIN seguros_medicos sm ON p.id_seguro = sm.id
+            LEFT JOIN emergencias e ON p.id_emergencia_origen = e.id
+            LEFT JOIN internaciones i ON p.id = i.id_paciente AND i.fecha_egreso IS NULL
+            WHERE p.dni LIKE ? OR p.nombre LIKE ? OR p.apellido LIKE ?
+            ORDER BY p.apellido ASC, p.nombre ASC
+        `, [searchTerm, searchTerm, searchTerm]);
 
-        res.render('pacientes/nuevo', {
-            seguros,
-            // Si hay oldInput, úsalo; de lo contrario, valores vacíos
-            dni: oldInput.dni || '',
-            apellido: oldInput.apellido || '',
-            nombre: oldInput.nombre || '',
-            telefono: oldInput.telefono || '',
-            correo: oldInput.correo || '',
-            fecha_nacimiento: oldInput.fecha_nacimiento || '',
-            sexo: oldInput.sexo || '',
-            direccion: oldInput.direccion || '',
-            id_seguro: oldInput.id_seguro || '',
-            nro_afiliado: oldInput.nro_afiliado || '',
-            errores: errores // Pasar el objeto de errores
+        pacientes.forEach(paciente => {
+            if (paciente.fecha_nacimiento) {
+                paciente.fecha_nacimiento_formatted = moment(paciente.fecha_nacimiento).format('YYYY-MM-DD');
+            }
+            paciente.nombre_completo = `${paciente.apellido || ''}, ${paciente.nombre || ''}`.trim();
         });
-    } catch (error) {
-        console.error('Error al cargar la página de nuevo paciente:', error);
-        next(error);
+
+        res.json(pacientes);
+    } catch (err) {
+        console.error('Error al buscar pacientes:', err);
+        next(err);
+    } finally {
+        if (connection) connection.release();
     }
 });
 
-
-// Formulario para editar paciente
-router.get('/editar/:id', async (req, res, next) => {
-    const id = req.params.id;
+// Formulario para crear un nuevo paciente (GET /pacientes/nuevo)
+router.get('/nuevo', async (req, res, next) => {
+    let connection;
     try {
-        const [pacienteResult] = await req.db.query('SELECT * FROM pacientes WHERE id = ?', [id]);
-        const [seguros] = await req.db.query('SELECT id, nombre FROM seguros_medicos');
+        connection = await req.db.getConnection();
+        const [seguros] = await connection.query('SELECT id, nombre FROM seguros_medicos');
+        res.render('pacientes/nuevo', {
+            seguros: seguros,
+            errores: req.flash('errores')[0] || {},
+            oldInput: req.flash('oldInput')[0] || {},
+            mensajeExito: req.flash('mensajeExito')[0] || null
+        });
+    } catch (err) {
+        console.error('Error al cargar la página de nuevo paciente:', err);
+        next(err);
+    } finally {
+        if (connection) connection.release();
+    }
+});
 
-        if (pacienteResult.length === 0) {
-            return res.status(404).send('Paciente no encontrado');
+// Guardar nuevo paciente (POST /pacientes)
+router.post('/', async (req, res, next) => {
+    const { dni, nombre, apellido, fecha_nacimiento, sexo, direccion, telefono, correo, id_seguro, nro_afiliado } = req.body;
+    const errores = {};
+    let idParticular = null;
+    let connection;
+
+    try {
+        connection = await req.db.getConnection();
+        await connection.beginTransaction();
+
+        const [particularSeguro] = await connection.query('SELECT id FROM seguros_medicos WHERE nombre = "Particular"');
+        if (particularSeguro.length > 0) {
+            idParticular = particularSeguro[0].id;
+        } else {
+            console.warn("ADVERTENCIA: No se encontró el seguro 'Particular' en la base de datos.");
         }
 
-        const errores = req.flash('errores')[0] || {}; // Obtener errores si existen
-        const mensajeExito = req.flash('mensajeExito')[0] || null; // Obtener mensaje de éxito
+        // Validaciones
+        if (!dni || dni.trim() === '') {
+            errores.dni = 'El DNI es obligatorio.';
+        } else if (!/^\d+$/.test(dni.trim())) {
+            errores.dni = 'El DNI debe contener solo números.';
+        } else {
+            const [existingPatient] = await connection.query('SELECT id FROM pacientes WHERE dni = ?', [dni.trim()]);
+            if (existingPatient.length > 0) {
+                errores.dni = 'Ya existe un paciente con este DNI.';
+            }
+        }
+        if (!apellido || apellido.trim() === '') errores.apellido = 'El apellido es obligatorio.';
+        if (!nombre || nombre.trim() === '') errores.nombre = 'El nombre es obligatorio.';
+        if (correo && correo.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+            errores.correo = 'El correo electrónico no tiene un formato válido.';
+        }
+        if (!fecha_nacimiento || fecha_nacimiento.trim() === '') {
+            errores.fecha_nacimiento = 'La fecha de nacimiento es obligatoria.';
+        } else {
+            const fechaNac = new Date(fecha_nacimiento);
+            const hoy = new Date();
+            if (isNaN(fechaNac.getTime())) {
+                errores.fecha_nacimiento = 'Fecha de nacimiento no válida.';
+            } else if (fechaNac >= hoy) {
+                errores.fecha_nacimiento = 'La fecha de nacimiento no puede ser futura.';
+            }
+        }
+        if (!sexo || (sexo !== 'M' && sexo !== 'F')) {
+            errores.sexo = 'Debe seleccionar un género válido.';
+        }
+        let idSeguroParaDB = null;
+        if (!id_seguro || id_seguro.trim() === '') {
+            errores.id_seguro = 'Debe seleccionar un seguro médico.';
+        } else {
+            idSeguroParaDB = parseInt(id_seguro, 10);
+            if (isNaN(idSeguroParaDB)) {
+                errores.id_seguro = 'Selección de seguro médico no válida.';
+            } else {
+                if (idParticular !== null && idSeguroParaDB !== idParticular) {
+                    if (!nro_afiliado || nro_afiliado.trim() === '') {
+                        errores.nro_afiliado = 'El número de afiliado es obligatorio para este seguro.';
+                    } else if (!/^\d{6}$/.test(nro_afiliado.trim())) {
+                        errores.nro_afiliado = 'El número de afiliado debe contener exactamente 6 números.';
+                    }
+                }
+            }
+        }
+
+        if (Object.keys(errores).length > 0) {
+            req.flash('errores', errores);
+            req.flash('oldInput', req.body);
+            await connection.rollback();
+            return res.redirect('/pacientes/nuevo');
+        }
+
+        await connection.query(
+            `INSERT INTO pacientes (
+                dni, nombre, apellido, fecha_nacimiento, sexo, direccion, telefono, correo, id_seguro, nro_afiliado, estado_atencion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                dni.trim(),
+                nombre.trim(),
+                apellido.trim(),
+                fecha_nacimiento,
+                sexo,
+                direccion ? direccion.trim() : null,
+                telefono ? telefono.trim() : null,
+                correo ? correo.trim() : null,
+                idSeguroParaDB,
+                nro_afiliado && nro_afiliado.trim() !== '' ? nro_afiliado.trim() : null,
+                'Activo'
+            ]
+        );
+
+        await connection.commit();
+        req.flash('mensajeExito', 'Paciente registrado con éxito.');
+        res.redirect('/pacientes');
+    } catch (dbErr) {
+        if (connection) await connection.rollback();
+        console.error('Error al guardar nuevo paciente:', dbErr);
+        next(dbErr);
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+// Formulario para editar paciente (GET /pacientes/editar/:id)
+router.get('/editar/:id', async (req, res, next) => {
+    const id = req.params.id;
+    let connection;
+    try {
+        connection = await req.db.getConnection();
+        const [pacienteResult] = await connection.query('SELECT * FROM pacientes WHERE id = ?', [id]);
+        
+        // Verificación defensiva antes de acceder a pacienteResult[0]
+        if (!pacienteResult || pacienteResult.length === 0) {
+            req.flash('error', 'Paciente no encontrado.');
+            return res.redirect('/pacientes');
+        }
+        const paciente = pacienteResult[0];
+
+        const [seguros] = await connection.query('SELECT id, nombre FROM seguros_medicos');
+
+        const errores = req.flash('errores')[0] || {};
+        const mensajeExito = req.flash('mensajeExito')[0] || null;
+
+        const oldInput = req.flash('oldInput')[0] || {};
+
+        // Determinar si el DNI es temporal
+        const isTempDni = paciente.dni && paciente.dni.startsWith('TEMP-'); 
 
         res.render('pacientes/editar', {
-            paciente: pacienteResult[0],
-            seguros,
+            paciente: paciente,
+            seguros: seguros,
             errores: errores,
-            mensajeExito: mensajeExito
+            mensajeExito: mensajeExito,
+            dni: oldInput.dni || paciente.dni || '',
+            apellido: oldInput.apellido || paciente.apellido || '',
+            nombre: oldInput.nombre || paciente.nombre || '',
+            telefono: oldInput.telefono || paciente.telefono || '',
+            correo: oldInput.correo || paciente.correo || '',
+            // Asegurarse de que la fecha se formatee solo si existe y es válida
+            fecha_nacimiento: oldInput.fecha_nacimiento || (paciente.fecha_nacimiento && moment(paciente.fecha_nacimiento).isValid() ? moment(paciente.fecha_nacimiento).format('YYYY-MM-DD') : ''),
+            sexo: oldInput.sexo || paciente.sexo || '',
+            direccion: oldInput.direccion || paciente.direccion || '',
+            id_seguro: oldInput.id_seguro || paciente.id_seguro || '',
+            nro_afiliado: oldInput.nro_afiliado || paciente.nro_afiliado || '',
+            estado_atencion: paciente.estado_atencion,
+            id_emergencia_origen: paciente.id_emergencia_origen,
+            isTempDni: isTempDni
         });
     } catch (err) {
         console.error('Error al cargar la página de edición de paciente:', err);
         next(err);
-    }
-});
-// Ruta POST para registrar nuevo paciente
-router.post('/nuevo', async (req, res, next) => {
-    const {
-        dni,
-        apellido,
-        nombre,
-        telefono,
-        correo,
-        fecha_nacimiento,
-        sexo,
-        direccion,
-        id_seguro,
-        nro_afiliado
-    } = req.body;
-
-    const errores = {};
-    let idSeguroParaDB = null;
-    let idParticular = null;
-
-    try {
-        const [particularSeguro] = await req.db.query('SELECT id FROM seguros_medicos WHERE nombre = "Particular"');
-        if (particularSeguro.length > 0) {
-            idParticular = particularSeguro[0].id;
-        } else {
-            console.warn("ADVERTENCIA: No se encontró el seguro 'Particular' en la base de datos. Asegúrate de que existe.");
-        }
-    } catch (dbErr) {
-        console.error('Error al obtener el ID de seguro "Particular":', dbErr);
-        errores.general = 'Error interno al procesar el seguro médico.';
-    }
-
-    // --- Validaciones de Backend ---
-
-    // DNI: Obligatorio y solo números
-    if (!dni || dni.trim() === '') {
-        errores.dni = 'El DNI es obligatorio.';
-    } else if (!/^\d+$/.test(dni.trim())) {
-        errores.dni = 'El DNI debe contener solo números.';
-    }
-
-    // DNI: Verificación de duplicados (solo si no hay errores previos en DNI)
-    if (!errores.dni) {
-        try {
-            const [existingPatient] = await req.db.query('SELECT id FROM pacientes WHERE dni = ?', [dni.trim()]);
-            if (existingPatient.length > 0) {
-                errores.dni = 'Ya existe un paciente con este DNI.';
-            }
-        } catch (dbErr) {
-            console.error('Error al verificar DNI duplicado:', dbErr);
-            errores.general = 'Error al verificar la disponibilidad del DNI.';
-        }
-    }
-
-    // Apellido: Obligatorio
-    if (!apellido || apellido.trim() === '') {
-        errores.apellido = 'El apellido es obligatorio.';
-    }
-
-    // Nombre: Obligatorio
-    if (!nombre || nombre.trim() === '') {
-        errores.nombre = 'El nombre es obligatorio.';
-    }
-
-    // Correo: Formato de email si está presente
-    if (correo && correo.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
-        errores.correo = 'El correo electrónico no tiene un formato válido.';
-    }
-
-    // Fecha de Nacimiento: Obligatorio y válido
-    if (!fecha_nacimiento || fecha_nacimiento.trim() === '') {
-        errores.fecha_nacimiento = 'La fecha de nacimiento es obligatoria.';
-    } else {
-        const fechaNac = new Date(fecha_nacimiento);
-        const hoy = new Date();
-        if (isNaN(fechaNac.getTime())) {
-            errores.fecha_nacimiento = 'Fecha de nacimiento no válida.';
-        } else if (fechaNac >= hoy) {
-            errores.fecha_nacimiento = 'La fecha de nacimiento no puede ser futura.';
-        }
-    }
-
-    // Sexo: Obligatorio y válido
-    if (!sexo || (sexo !== 'M' && sexo !== 'F')) {
-        errores.sexo = 'Debe seleccionar un género válido.';
-    }
-
-    // id_seguro: Obligatorio.
-    if (!id_seguro || id_seguro.trim() === '') {
-        errores.id_seguro = 'Debe seleccionar un seguro médico.';
-    } else {
-        idSeguroParaDB = parseInt(id_seguro, 10);
-        if (isNaN(idSeguroParaDB)) {
-            errores.id_seguro = 'Selección de seguro médico no válida.';
-        } else {
-            // Lógica condicional para nro_afiliado: obligatorio si NO es 'Particular'
-            if (idParticular !== null && idSeguroParaDB !== idParticular) {
-                if (!nro_afiliado || nro_afiliado.trim() === '') {
-                    errores.nro_afiliado = 'El número de afiliado es obligatorio para este seguro.';
-                } else if (!/^\d{6}$/.test(nro_afiliado.trim())) { // Validación de 6 números en backend
-                    errores.nro_afiliado = 'El número de afiliado debe contener exactamente 6 números.';
-                }
-            }
-        }
-    }
-
-    // Si hay errores, re-renderizar el formulario
-    if (Object.keys(errores).length > 0) {
-        req.flash('errores', errores);
-        req.flash('oldInput', req.body); // Guardar los datos ingresados para rellenar el formulario
-        return res.redirect('/pacientes/nuevo'); // Redirigir a la misma página GET
-    }
-
-    // Si no hay errores, proceder con la inserción
-    try {
-        const result = await req.db.query(
-            `INSERT INTO pacientes (dni, apellido, nombre, telefono, correo, fecha_nacimiento, sexo, direccion, id_seguro, nro_afiliado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                dni.trim(),
-                apellido.trim(),
-                nombre.trim(),
-                telefono ? telefono.trim() : null,
-                correo ? correo.trim() : null,
-                fecha_nacimiento,
-                sexo,
-                direccion ? direccion.trim() : null,
-                idSeguroParaDB,
-                nro_afiliado && nro_afiliado.trim() !== '' ? nro_afiliado.trim() : null
-            ]
-        );
-        req.flash('mensajeExito', 'Paciente registrado con éxito!'); // Mensaje de éxito
-        res.redirect('/pacientes');
-    } catch (dbErr) {
-        console.error('Error al guardar el paciente:', dbErr);
-        if (dbErr.code === 'ER_DUP_ENTRY' || (dbErr.sqlMessage && dbErr.sqlMessage.includes('Duplicate entry'))) {
-            errores.dni = 'Ya existe un paciente con este DNI.';
-            req.flash('errores', errores);
-            req.flash('oldInput', req.body);
-            return res.redirect('/pacientes/nuevo');
-        }
-        next(dbErr);
+    } finally {
+        if (connection) connection.release();
     }
 });
 
-
-// Guardar cambios del paciente (Ruta POST ÚNICA)
+// Guardar cambios del paciente (POST /pacientes/editar/:id)
 router.post('/editar/:id', async (req, res, next) => {
     const pacienteId = req.params.id;
     const {
+        dni, 
         nombre,
         apellido,
-        // DNI no se modifica, pero lo podríamos necesitar para el mensaje de error
-        dni, // Lo dejamos aquí por si queremos usarlo para mensajes
         fecha_nacimiento,
         sexo,
         direccion,
@@ -267,73 +300,106 @@ router.post('/editar/:id', async (req, res, next) => {
 
     const errores = {};
     let idParticular = null;
+    let connection;
 
     try {
-        const [particularSeguro] = await req.db.query('SELECT id FROM seguros_medicos WHERE nombre = "Particular"');
+        connection = await req.db.getConnection();
+        await connection.beginTransaction();
+
+        const [particularSeguro] = await connection.query('SELECT id FROM seguros_medicos WHERE nombre = "Particular"');
         if (particularSeguro.length > 0) {
             idParticular = particularSeguro[0].id;
-        }
-    } catch (dbErr) {
-        console.error('Error al obtener el ID de seguro "Particular" en editar:', dbErr);
-        errores.general = 'Error interno al procesar el seguro médico.';
-    }
-
-
-    // Validaciones (DNI no se valida aquí por ser readonly, pero los demás sí)
-    if (!nombre || nombre.trim() === '') errores.nombre = 'El nombre es obligatorio.';
-    if (!apellido || apellido.trim() === '') errores.apellido = 'El apellido es obligatorio.';
-
-    // Aunque el DNI es readonly, podemos validar si se manipuló el HTML y llega vacío/inválido
-    // if (!dni || dni.trim() === '') errores.dni = 'El DNI es obligatorio.';
-    // else if (!/^\d+$/.test(dni.trim())) errores.dni = 'El DNI debe contener solo números.';
-
-    if (!fecha_nacimiento || fecha_nacimiento.trim() === '') {
-        errores.fecha_nacimiento = 'La fecha de nacimiento es obligatoria.';
-    } else {
-        const fechaNac = new Date(fecha_nacimiento);
-        const hoy = new Date();
-        if (isNaN(fechaNac.getTime())) {
-            errores.fecha_nacimiento = 'Fecha de nacimiento no válida.';
-        } else if (fechaNac >= hoy) {
-            errores.fecha_nacimiento = 'La fecha de nacimiento no puede ser futura.';
-        }
-    }
-
-    if (!sexo || (sexo !== 'M' && sexo !== 'F')) errores.sexo = 'Debe seleccionar un género válido.';
-
-    let idSeguroParaDB = null;
-    if (!id_seguro || id_seguro.trim() === '') {
-        errores.id_seguro = 'Debe seleccionar un seguro médico.';
-    } else {
-        idSeguroParaDB = parseInt(id_seguro, 10);
-        if (isNaN(idSeguroParaDB)) {
-            errores.id_seguro = 'Selección de seguro médico no válida.';
         } else {
-            if (idParticular !== null && idSeguroParaDB !== idParticular) {
-                if (!nro_afiliado || nro_afiliado.trim() === '') {
-                    errores.nro_afiliado = 'El número de afiliado es obligatorio para este seguro.';
-                } else if (!/^\d{6}$/.test(nro_afiliado.trim())) {
-                    errores.nro_afiliado = 'El número de afiliado debe contener exactamente 6 números.';
+            console.warn("ADVERTENCIA: No se encontró el seguro 'Particular' en la base de datos.");
+        }
+
+        // Validaciones
+        const [currentPaciente] = await connection.query('SELECT dni FROM pacientes WHERE id = ?', [pacienteId]);
+        const currentDni = currentPaciente[0] ? currentPaciente[0].dni : null;
+        const isCurrentDniTemp = currentDni && currentDni.startsWith('TEMP-');
+
+        // DNI: Obligatorio y solo números
+        if (!dni || dni.trim() === '') {
+            errores.dni = 'El DNI es obligatorio.';
+        } else if (!/^\d+$/.test(dni.trim())) {
+            errores.dni = 'El DNI debe contener solo números.';
+        } else {
+            if (dni.trim() !== currentDni || isCurrentDniTemp) {
+                const [existingPatient] = await connection.query('SELECT id FROM pacientes WHERE dni = ? AND id != ?', [dni.trim(), pacienteId]);
+                if (existingPatient.length > 0) {
+                    errores.dni = 'Ya existe otro paciente con este DNI.';
                 }
             }
         }
-    }
 
-    if (correo && correo.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
-        errores.correo = 'El correo electrónico no tiene un formato válido.';
-    }
+        // Apellido y Nombre: Obligatorios
+        if (!apellido || apellido.trim() === '') errores.apellido = 'El apellido es obligatorio.';
+        if (!nombre || nombre.trim() === '') errores.nombre = 'El nombre es obligatorio.';
 
-    if (Object.keys(errores).length > 0) {
-        req.flash('errores', errores);
-        // Podrías pasar los datos del formulario original si quisieras, pero en editar es más común re-fetch el paciente
-        // req.flash('oldInput', req.body); // Descomentar si deseas que los datos incorrectos persistan
-        return res.redirect('/pacientes/editar/' + pacienteId);
-    }
+        // Correo: Formato de email si está presente
+        if (correo && correo.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+            errores.correo = 'El correo electrónico no tiene un formato válido.';
+        }
 
-    try {
-        await req.db.execute(
-            `UPDATE pacientes SET nombre = ?, apellido = ?, fecha_nacimiento = ?, sexo = ?, direccion = ?, telefono = ?, correo = ?, id_seguro = ?, nro_afiliado = ? WHERE id = ?`,
+        // Fecha de Nacimiento: Obligatoria y válida
+        if (!fecha_nacimiento || fecha_nacimiento.trim() === '') {
+            errores.fecha_nacimiento = 'La fecha de nacimiento es obligatoria.';
+        } else {
+            const fechaNac = new Date(fecha_nacimiento);
+            const hoy = new Date();
+            if (isNaN(fechaNac.getTime())) {
+                errores.fecha_nacimiento = 'Fecha de nacimiento no válida.';
+            } else if (fechaNac >= hoy) {
+                errores.fecha_nacimiento = 'La fecha de nacimiento no puede ser futura.';
+            }
+        }
+
+        // Sexo: Obligatorio y válido
+        if (!sexo || (sexo !== 'M' && sexo !== 'F')) {
+            errores.sexo = 'Debe seleccionar un género válido.';
+        }
+
+        // id_seguro y nro_afiliado: Lógica de validación
+        let idSeguroParaDB = null;
+        if (!id_seguro || id_seguro.trim() === '') {
+            errores.id_seguro = 'Debe seleccionar un seguro médico.';
+        } else {
+            idSeguroParaDB = parseInt(id_seguro, 10);
+            if (isNaN(idSeguroParaDB)) {
+                errores.id_seguro = 'Selección de seguro médico no válida.';
+            } else {
+                if (idParticular !== null && idSeguroParaDB !== idParticular) {
+                    if (!nro_afiliado || nro_afiliado.trim() === '') {
+                        errores.nro_afiliado = 'El número de afiliado es obligatorio para este seguro.';
+                    } else if (!/^\d{6}$/.test(nro_afiliado.trim())) {
+                        errores.nro_afiliado = 'El número de afiliado debe contener exactamente 6 números.';
+                    }
+                }
+            }
+        }
+
+        if (Object.keys(errores).length > 0) {
+            req.flash('errores', errores);
+            req.flash('oldInput', req.body); 
+            await connection.rollback(); 
+            return res.redirect('/pacientes/editar/' + pacienteId);
+        }
+
+        await connection.query(
+            `UPDATE pacientes SET
+                dni = ?,
+                nombre = ?,
+                apellido = ?,
+                fecha_nacimiento = ?,
+                sexo = ?,
+                direccion = ?,
+                telefono = ?,
+                correo = ?,
+                id_seguro = ?,
+                nro_afiliado = ?
+            WHERE id = ?`,
             [
+                dni.trim(), 
                 nombre.trim(),
                 apellido.trim(),
                 fecha_nacimiento,
@@ -346,95 +412,48 @@ router.post('/editar/:id', async (req, res, next) => {
                 pacienteId
             ]
         );
+
+        await connection.commit(); 
         req.flash('mensajeExito', 'Datos del paciente actualizados con éxito.');
-        res.redirect('/pacientes/editar/' + pacienteId); // Redirige de nuevo a la página de edición para ver el éxito
+        res.redirect('/pacientes/editar/' + pacienteId);
+
     } catch (dbErr) {
+        if (connection) await connection.rollback(); 
         console.error('Error al guardar cambios del paciente:', dbErr);
-        // Si es un error de duplicado de DNI en la edición (aunque DNI es readonly, por si acaso)
-        if (dbErr.code === 'ER_DUP_ENTRY' || (dbErr.sqlMessage && dbErr.sqlMessage.includes('Duplicate entry'))) {
-            errores.dni = 'Ya existe otro paciente con este DNI.';
-            req.flash('errores', errores);
-            // req.flash('oldInput', req.body); // Descomentar si deseas que los datos incorrectos persistan
-            return res.redirect('/pacientes/editar/' + pacienteId);
-        }
         next(dbErr);
-    }
-});
-
-
-// Eliminar paciente (POST /pacientes/eliminar/:id)
-router.post('/eliminar/:id', async (req, res, next) => {
-    const id = req.params.id;
-    const dniPaciente = req.body.dni || 'desconocido'; // Obtener DNI del formulario si es posible
-    let connection;
-    try {
-        connection = await req.db.getConnection();
-        await connection.beginTransaction();
-
-        // 1. Verificar si el paciente tiene internaciones activas
-        const [activeInternations] = await connection.query(
-            'SELECT id FROM internaciones WHERE id_paciente = ? AND fecha_egreso IS NULL',
-            [id]
-        );
-
-        if (activeInternations.length > 0) {
-            await connection.rollback();
-            req.flash('errorEliminar', `No se puede eliminar el paciente con DNI ${dniPaciente} porque tiene internaciones activas.`);
-            return res.redirect('/pacientes');
-        }
-
-        // 2. Si no hay internaciones activas, eliminar el paciente
-        await connection.query('DELETE FROM pacientes WHERE id = ?', [id]);
-        await connection.commit();
-        req.flash('mensajeExito', `Paciente con DNI ${dniPaciente} eliminado con éxito.`);
-        res.redirect('/pacientes');
-    } catch (err) {
-        if (connection) await connection.rollback();
-        console.error(`Error al eliminar paciente con ID ${id}:`, err);
-        // Manejar errores de clave foránea si el paciente tiene registros históricos
-        if (err.code === 'ER_ROW_IS_REFERENCED_2' || (err.sqlMessage && err.sqlMessage.includes('a foreign key constraint fails'))) {
-            req.flash('errorEliminar', `No se puede eliminar el paciente con DNI ${dniPaciente} porque tiene registros históricos asociados (internaciones pasadas, etc.).`);
-            return res.redirect('/pacientes');
-        }
-        next(err);
     } finally {
         if (connection) connection.release();
     }
 });
 
-// Ruta API para buscar pacientes (GET /api/pacientes/buscar?term=...)
-router.get('/buscar', async (req, res, next) => {
-    const searchTerm = req.query.term || '';
+// Eliminar paciente (POST /pacientes/eliminar/:id)
+router.post('/eliminar/:id', async (req, res, next) => {
+    const pacienteId = req.params.id;
     let connection;
     try {
         connection = await req.db.getConnection();
-        let query = `
-            SELECT
-                p.id,
-                p.dni,
-                p.nombre,
-                p.apellido,
-                CONCAT(p.apellido, ', ', p.nombre) AS nombre_completo,
-                p.sexo,
-                p.telefono,
-                p.correo,
-                sm.nombre AS nombre_seguro,
-                p.nro_afiliado,
-                -- Determinar si el paciente está internado y obtener el ID de internación activa
-                CASE WHEN i.id IS NOT NULL AND i.fecha_egreso IS NULL THEN 1 ELSE 0 END AS internado,
-                i.id AS id_internacion_actual
-            FROM pacientes p
-            LEFT JOIN seguros_medicos sm ON p.id_seguro = sm.id
-            LEFT JOIN internaciones i ON p.id = i.id_paciente AND i.fecha_egreso IS NULL
-            WHERE p.dni LIKE ? OR p.nombre LIKE ? OR p.apellido LIKE ?
-            ORDER BY p.apellido, p.nombre ASC
-        `;
-        const searchPattern = `%${searchTerm}%`;
-        const [rows] = await connection.query(query, [searchPattern, searchPattern, searchPattern]);
-        res.json(rows);
-    } catch (err) {
-        console.error('Error al buscar pacientes:', err);
-        next(err); // Pasa el error al manejador de errores global
+        await connection.beginTransaction();
+
+        const [internacionActiva] = await connection.query('SELECT id FROM internaciones WHERE id_paciente = ? AND fecha_egreso IS NULL', [pacienteId]);
+        if (internacionActiva.length > 0) {
+            req.flash('error', 'No se puede eliminar al paciente porque tiene una internación activa.');
+            await connection.rollback();
+            return res.redirect('/pacientes');
+        }
+
+        await connection.query('DELETE FROM emergencias WHERE id_paciente_temp = ?', [pacienteId]);
+
+        await connection.query('DELETE FROM pacientes WHERE id = ?', [pacienteId]);
+        
+        await connection.commit();
+        req.flash('mensajeExito', 'Paciente eliminado con éxito.');
+        res.redirect('/pacientes');
+    } catch (dbErr) {
+        if (connection) await connection.rollback();
+        console.error('Error al eliminar paciente:', dbErr);
+        req.flash('error', 'Error al eliminar paciente.');
+        res.redirect('/pacientes');
+        next(dbErr);
     } finally {
         if (connection) connection.release();
     }

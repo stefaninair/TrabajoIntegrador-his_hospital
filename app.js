@@ -51,6 +51,8 @@ app.use('/api/pacientes', pacientesRouter); // <--- ¡Asegúrate de que esta lí
 const internacionesRouter = require('./routes/internaciones');
 app.use('/internaciones', internacionesRouter);
 
+const emergenciasRouter = require('./routes/emergencias');
+app.use('/emergencias', emergenciasRouter);
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
