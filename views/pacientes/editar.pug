@@ -21,12 +21,12 @@ block content
                 placeholder='DNI',
                 value=paciente.dni || '',
                 required,
-                disabled=(!isTempDni),
+                readonly=(!isTempDni),
                 class=(errores && errores.dni ? 'is-invalid' : '')
               )
               label(for='dni') DNI
               if isTempDni 
-                small.form-text.text-muted Este es un DNI provisional de emergencia. Por favor, ingrese el DNI real.
+                small.form-text.text-white Este es un DNI provisional de emergencia. Por favor, ingrese el DNI real.
               if errores && errores.dni
                 .invalid-feedback= errores.dni
 
@@ -174,7 +174,7 @@ block content
             button(type='submit').btn.btn-warning.btn-lg.rounded-pill.text-white ✏️ Actualizar Paciente
             a(href='/internaciones/nueva/' + paciente.id).btn.btn-success.btn-lg.rounded-pill.text-white.shadow-sm
               i.bi.bi-check-circle-fill.me-2
-              | Confirmar Datos
+              | Internar  
 
 
   

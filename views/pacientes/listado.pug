@@ -1,6 +1,71 @@
 extends ../layout
 
 block content
+    // Estilos personalizados para animaciones y diseño (mantengo los que ya teníamos y añado algunos para los botones pequeños)
+    style.
+        .container {
+            max-width: 1300px; /* Un poco más ancho para la tabla */
+        }
+        .card-header {
+            background-image: linear-gradient(to right, #007bff, #0056b3); /* Degradado azul */
+        }
+        .btn-lg {
+            font-size: 1.1rem;
+            padding: 0.75rem 1.5rem;
+        }
+        .table-dark th {
+            background-color: #343a40; /* Fondo oscuro para encabezado de tabla */
+            color: white;
+            border-bottom: 2px solid #007bff;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f1f1; /* Resaltado al pasar el mouse */
+        }
+        .rounded-pill {
+            border-radius: 50rem !important; /* Asegura el redondeo completo */
+        }
+        /* Estilos para tooltips personalizados */
+        .tooltip.show {
+            opacity: 1 !important;
+        }
+        .tooltip-inner {
+            background-color: #343a40; /* Fondo oscuro del tooltip */
+            color: #fff;
+            padding: .5rem .75rem;
+            border-radius: .25rem;
+            font-size: .85rem;
+        }
+        .tooltip.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
+        .tooltip.bs-tooltip-top .tooltip-arrow::before {
+            border-top-color: #343a40; /* Color de la flecha del tooltip */
+        }
+        .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+        .badge.bg-warning {
+            background-color: #ffc107 !important;
+        }
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        .badge.bg-info {
+            background-color: #17a2b8 !important;
+        }
+
+        /* NUEVOS ESTILOS PARA BOTONES DE ACCIÓN EN TABLA (si queremos texto) */
+        .btn-action-text {
+            display: flex; /* Para alinear icono y texto */
+            align-items: center; /* Centrar verticalmente */
+            gap: 0.25rem; /* Pequeño espacio entre icono y texto */
+            padding: 0.3rem 0.6rem; /* Ajustar padding para que no sean enormes */
+            font-size: 0.85rem; /* Reducir un poco el tamaño de fuente */
+            border-radius: 0.25rem; /* Esquinas ligeramente redondeadas */
+        }
+        .btn-action-text i {
+            font-size: 0.9rem; /* Tamaño del ícono */
+        }
+
+
     .container.my-5
         if errorEliminar
             div(class="alert alert-danger alert-dismissible fade show text-center my-3 animate__animated animate__fadeIn text-dark" role="alert")
@@ -19,16 +84,15 @@ block content
                 .d-flex.justify-content-between.align-items-center.mb-4
                     .input-group.w-50
                         input#searchInput.form-control.rounded-pill(type='text', placeholder='Buscar paciente por DNI, nombre o apellido...')
-                        button.btn.btn-outline-secondary.rounded-pill.ms-2(type='button' onclick="document.getElementById('searchInput').value = ''; loadAndRenderPacientes('');")
-                            i.bi.bi-x-circle 
                     
                     div.d-flex 
-                        a(href='/pacientes/nuevo').btn.btn-success.btn-lg.rounded-pill.shadow-sm.me-2 
-                            i.bi.bi-person-plus-fill.me-2 
-                            | Nuevo Paciente
-                        a(href="/emergencias/nuevo").btn.btn-danger.btn-lg.rounded-pill.shadow-sm.me-2
+                        a(href='/pacientes/nuevo').btn.btn-success.btn-lg.rounded-pill.shadow-sm.me-3.d-flex.align-items-center
+                            i.bi.bi-person-plus-fill.me-2
+                            span Nuevo Paciente
+                        
+                        a(href="/emergencias/nuevo").btn.btn-danger.btn-lg.rounded-pill.shadow-sm.d-flex.align-items-center
                             i.bi.bi-clipboard-pulse.me-2
-                            | Emergencia
+                            span Registrar Emergencia
 
                 .table-responsive.shadow-sm.rounded-3.overflow-hidden
                     table.table.table-hover.table-striped.align-middle.mb-0#pacientesTable
@@ -44,7 +108,7 @@ block content
                                 th Estado
                                 th Acciones
                         tbody#pacientesTableBody
-                            
+                            // Contenido de la tabla se carga dinámicamente
 
     .modal.fade#confirmDeleteModal(tabindex='-1', aria-labelledby='confirmDeleteModalLabel', aria-hidden='true')
         .modal-dialog
@@ -106,7 +170,12 @@ block scripts
 
             function initializeTooltips() {
                 const existingTooltips = document.querySelectorAll('.tooltip');
-                existingTooltips.forEach(tooltip => tooltip.remove());
+                existingTooltips.forEach(tooltip => {
+                    const bsTooltip = bootstrap.Tooltip.getInstance(tooltip);
+                    if (bsTooltip) {
+                        bsTooltip.dispose();
+                    }
+                });
 
                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -127,13 +196,13 @@ block scripts
                 if (estado.internado) {
                     estadoBadgeHtml = `
                         <a href="/internaciones/comprobante/${estado.id_internacion}" 
-                           class="btn btn-warning btn-sm" 
+                           class="badge bg-warning text-dark text-decoration-none" 
                            data-bs-toggle="tooltip" title="Ver Comprobante de Internación">
-                            Internado
+                           Internado
                         </a>
-                    `;
+                    `; 
                     altaButton = `
-                        <button type="button" class="btn btn-sm btn-warning text-white rounded-circle shadow-sm" 
+                        <button type="button" class="btn btn-sm btn-warning text-white shadow-sm btn-action-text" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#confirmAltaModal" 
                                 data-id="${paciente.id}" 
@@ -141,15 +210,16 @@ block scripts
                                 data-id-internacion="${estado.id_internacion}" 
                                 title="Registrar Alta">
                             <i class="bi bi-box-arrow-up"></i>
+                            <span>Alta</span>
                         </button>
                     `;
                 } else {
                     estadoBadgeHtml = `
-                        <a href="/pacientes/editar/${paciente.id}" class="badge bg-success text-decoration-none" 
-                            data-bs-toggle="tooltip" title="Ver/Editar Paciente para Internar">
+                        <span class="badge bg-success text-white" 
+                            data-bs-toggle="tooltip" title="Paciente actualmente no internado">
                             No internado
-                        </a>
-                    `;
+                        </span>
+                    `; 
                     altaButton = ''; 
                 }
 
@@ -164,13 +234,15 @@ block scripts
                         <td>${paciente.nro_afiliado || '-'}</td>
                         <td>${estadoBadgeHtml}</td> 
                         <td>
-                            <div class="d-flex justify-content-center align-items-center gap-2">
+                            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
                                 ${altaButton} 
-                                <a href="/pacientes/editar/${paciente.id}" class="btn btn-sm btn-info text-white rounded-circle shadow-sm" data-bs-toggle="tooltip" title="Editar Paciente">
+                                <a href="/pacientes/editar/${paciente.id}" class="btn btn-sm btn-info text-white shadow-sm btn-action-text" data-bs-toggle="tooltip" title="Editar paciente">
                                     <i class="bi bi-pencil-square"></i>
+                                    <span>Editar</span>
                                 </a>
-                                <button type="button" class="btn btn-sm btn-danger text-white rounded-circle shadow-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="${paciente.id}" data-nombre="${paciente.nombre_completo}" title="Eliminar Paciente">
+                                <button type="button" class="btn btn-sm btn-danger text-white shadow-sm btn-action-text" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-id="${paciente.id}" data-nombre="${paciente.nombre_completo}" title="Eliminar paciente">
                                     <i class="bi bi-trash"></i>
+                                    <span>Eliminar</span>
                                 </button>
                             </div>
                         </td>

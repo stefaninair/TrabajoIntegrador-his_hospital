@@ -80,3 +80,16 @@
 .bg-danger { border-color: #dc3545 !important; } /* Darker red for border */
 .bg-secondary { border-color: #6c757d !important; } /* Darker gray for border */
 
+.table-scroll-container {
+    max-height: calc(100vh - 400px); /* Ajusta esta altura según sea necesario */
+    overflow-y: auto; /* Habilita el scroll vertical cuando el contenido excede la altura máxima */
+    overflow-x: hidden; /* Asegura que no haya scroll horizontal extra innecesario */
+    border: 1px solid #dee2e6; /* Borde opcional para el contenedor de scroll */
+    border-radius: 0.3rem; /* Bordes redondeados opcionales */
+}
+.table-scroll-container table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1; /* Asegura que el thead esté por encima del tbody */
+    background-color: #343a40; /* Fondo para el thead pegajoso */
+}

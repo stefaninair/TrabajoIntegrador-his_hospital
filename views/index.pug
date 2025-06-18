@@ -1,15 +1,95 @@
-extends layout
+extends layout 
 
 block content
-  h1.display-4.mb-4 Bienvenido al sistema HIS Hospital
-  p.lead.mb-5 Sistema de recepción y admisión de pacientes
+    style.
+        /* Estilos generales para el fondo y texto */
+        body {
+            /* Asegura que el color de fondo no interfiera con el texto, o que el texto sea claro */
+            background-color: #f8f9fa; /* Un color de fondo claro si no tienes una imagen de fondo definida */
+            color: #343a40; /* Un color de texto oscuro por defecto para legibilidad */
+        }
+        /* Estilos específicos para la sección de bienvenida */
+        .welcome-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/images/stethoscope_laptop.jpg') no-repeat center center; /* Superposición oscura sobre la imagen de fondo */
+            background-size: cover;
+            color: white; /* Texto blanco para contrastar con el fondo oscuro */
+            padding: 80px 0;
+            text-align: center;
+            min-height: 100vh; /* Ocupa al menos la altura completa de la ventana */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .welcome-section h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Sombra para el texto del título */
+        }
+        .welcome-section p {
+            font-size: 1.25rem;
+            margin-bottom: 40px;
+            max-width: 800px;
+            line-height: 1.6;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+        }
+        .main-action-card {
+            background-color: rgba(255, 255, 255, 0.9); /* Fondo ligeramente transparente y claro para la tarjeta */
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px; /* Ancho máximo para la tarjeta */
+            width: 90%; /* Ancho responsivo */
+        }
+        .main-action-card .icon-placeholder {
+            width: 100px;
+            height: 100px;
+            background-color: #007bff; /* Color del círculo del ícono */
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+        }
+        .main-action-card h2 {
+            color: #007bff; /* Color del título de la tarjeta */
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        .btn-comenzar {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: flex; /* Para alinear ícono y texto */
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Espacio entre ícono y texto */
+            background-color: #007bff; /* Color del botón */
+            border-color: #007bff;
+            transition: all 0.3s ease;
+        }
+        .btn-comenzar:hover {
+            background-color: #0056b3; /* Color al pasar el mouse */
+            border-color: #0056b3;
+            transform: translateY(-2px); /* Pequeño efecto al pasar el mouse */
+            box-shadow: 0 8px 15px rgba(0, 123, 255, 0.3);
+        }
 
-  .row.justify-content-center.g-4
-    .col-md-6.col-lg-5
-      .card.h-100.shadow-lg.border-0.bg-white.text-dark 
-        .card-body.d-flex.flex-column.align-items-center.justify-content-center
-          i.fas.fa-user-plus.fa-4x.mb-3.text-primary
-          // Botón de Admisión
-          a(href="/pacientes").btn.btn-primary.btn-lg.mt-3 Admisión
+    .welcome-section
+        h1 Bienvenido al Sistema HIS Hospital
+        p ¡Sistema de Recepción y Admision de Pacientes!
 
-  
+        .main-action-card
+            .icon-placeholder
+                i.bi.bi-person-add
+            h2 Admisión de Pacientes
+          
+            a(href='/pacientes').btn.btn-primary.btn-comenzar
+                i.bi.bi-arrow-right-circle-fill 
+                | ¡COMENZAR ADMISIÓN!

@@ -126,7 +126,7 @@ router.get('/nuevo', async (req, res, next) => {
 });
 
 // Guardar nuevo paciente (POST /pacientes)
-router.post('/', async (req, res, next) => {
+router.post('/nuevo', async (req, res, next) => {
     const { dni, nombre, apellido, fecha_nacimiento, sexo, direccion, telefono, correo, id_seguro, nro_afiliado } = req.body;
     const errores = {};
     let idParticular = null;
