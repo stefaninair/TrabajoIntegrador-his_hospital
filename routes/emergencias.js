@@ -97,7 +97,7 @@ router.post('/', async (req, res, next) => {
             return res.redirect('/emergencias/nuevo');
         }
 
-        const pacienteProvisionalDNI = finalDni || `TEMP-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        const pacienteProvisionalDNI = finalDni || `TEMP-${Date.now()}-${Math.floor(Math.random() * 100)}`;
 
         const [pacienteResult] = await connection.query(
             `INSERT INTO pacientes (
