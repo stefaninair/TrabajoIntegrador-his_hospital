@@ -37,20 +37,11 @@ app.use((req, res, next) => {
 // Rutas
 const indexRouter = require('./routes/index');
 app.use('/', indexRouter);
-
 const pacientesRouter = require('./routes/pacientes');
-// 1. Montar para las rutas de VISTAS (listado, nuevo, editar)
-// Esto hará que router.get('/') sea /pacientes/, router.get('/nuevo') sea /pacientes/nuevo, etc.
 app.use('/pacientes', pacientesRouter);
-
-// 2. Montar para la ruta de la API del buscador
-// Esto hará que router.get('/buscar') se convierta en /api/pacientes/buscar
-// ¡ESTA ES LA LÍNEA CRUCIAL PARA EL BUSCADOR!
-app.use('/api/pacientes', pacientesRouter); // <--- ¡Asegúrate de que esta línea esté presente!
-
+app.use('/api/pacientes', pacientesRouter); 
 const internacionesRouter = require('./routes/internaciones');
 app.use('/internaciones', internacionesRouter);
-
 const emergenciasRouter = require('./routes/emergencias');
 app.use('/emergencias', emergenciasRouter);
 

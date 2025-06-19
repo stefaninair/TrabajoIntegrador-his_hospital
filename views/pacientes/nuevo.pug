@@ -1,18 +1,18 @@
 extends ../layout
 
 block content
-  // Main container with margin and a Bootstrap card for design
+  
   .container.my-5
     .card.shadow-lg.mx-auto.border-0.rounded-4(style="max-width: 800px;")
       .card-header.bg-gradient.bg-primary.text-white.text-center.py-4.rounded-top-4
         h1.mb-0.display-5 Registro de Nuevo Paciente
 
       .card-body.p-5
-        // Form with Bootstrap classes and client-side validation setup
+        
         form#formPaciente(action="/pacientes/nuevo", method="POST", novalidate)
           .row.g-3 
 
-            // DNI Field - Con pattern para solo números
+            
             .col-12.col-md-6.form-floating
               input.form-control(
                 type='text',
@@ -29,7 +29,7 @@ block content
               if errores && errores.dni
                 .invalid-feedback= errores.dni
 
-            // Fecha de nacimiento Field
+           
             .col-12.col-md-6.form-floating
               input.form-control(
                 type='date',
@@ -44,7 +44,7 @@ block content
               if errores && errores.fecha_nacimiento
                 .invalid-feedback= errores.fecha_nacimiento
 
-            // Nombre Field
+            
             .col-md-6.form-floating
               input.form-control(
                 type='text',
@@ -59,7 +59,7 @@ block content
               if errores && errores.nombre
                 .invalid-feedback= errores.nombre
 
-            // Apellido Field
+            
             .col-md-6.form-floating
               input.form-control(
                 type='text',
@@ -74,7 +74,7 @@ block content
               if errores && errores.apellido
                 .invalid-feedback= errores.apellido
             
-            // Correo electrónico Field
+            
             .col-md-6.form-floating
               input.form-control(
                 type='email', 
@@ -88,7 +88,7 @@ block content
               if errores && errores.correo
                 .invalid-feedback= errores.correo
 
-            // Dirección Field
+            
             .col-md-6.form-floating
               input.form-control(
                 type='text',
@@ -99,7 +99,7 @@ block content
               )
               label(for='direccion') Dirección
 
-            // Teléfono Field
+            
             .col-md-6.form-floating
               input.form-control(
                 type='text',
@@ -110,7 +110,7 @@ block content
               )
               label(for='telefono') Teléfono
 
-            // Género Field
+            
             .col-md-6
               label.form-label(for='sexo').text-white Género:
               select.form-select(
@@ -125,7 +125,7 @@ block content
               if errores && errores.sexo
                 .invalid-feedback= errores.sexo
 
-            // Seguro Médico Field (Obligatorio)
+            
             .col-md-6
               label.form-label(for='id_seguro').text-white Seguro Médico:
               select.form-select(
@@ -140,7 +140,7 @@ block content
               if errores && errores.id_seguro
                 .invalid-feedback= errores.id_seguro
 
-            // Número de Afiliado Field (Validación condicional en JS/Backend)
+            
             .col-md-6.form-floating
               input.form-control(
                 type='text',
@@ -153,7 +153,7 @@ block content
               if errores && errores.nro_afiliado
                 .invalid-feedback= errores.nro_afiliado
 
-          // Messages (Success/Error)
+          
           if mensajeExito
             .alert.alert-success.mt-4.text-center= mensajeExito
           if errores && Object.keys(errores).length > 0 && !errores.general
@@ -164,14 +164,14 @@ block content
           if errores && errores.general
             .alert.alert-danger.mt-4.text-center= errores.general
 
-          // Buttons section
+          
           .d-flex.justify-content-center.gap-3.pt-4.mt-4.border-top
             a(href='/pacientes').btn.btn-secondary.btn-lg.rounded-pill
               i.bi.bi-arrow-left-circle.me-2
               | Volver
             button(type='submit').btn.btn-primary.btn-lg.rounded-pill 💾 Guardar Paciente
 
-  // Client-side validation script
+  
   script.
     (function () {
       'use strict'
@@ -202,7 +202,7 @@ block content
           const selectedSeguroId = idSeguroInput.value;
           const nroAfiliadoValue = nroAfiliadoInput.value.trim();
           
-          // IMPORTANTE: AJUSTA ESTE VALOR AL ID REAL de 'Particular' en tu base de datos
+          
           const PARTICULAR_ID = '1'; 
 
           if (selectedSeguroId && selectedSeguroId !== '' && selectedSeguroId !== PARTICULAR_ID) {
@@ -216,7 +216,7 @@ block content
                   }
                   feedbackDiv.textContent = 'El número de afiliado es obligatorio para este seguro.';
                   return false;
-              } else if (!/^\d{6}$/.test(nroAfiliadoValue)) { // <--- Validación de 6 números
+              } else if (!/^\d{6}$/.test(nroAfiliadoValue)) { 
                   nroAfiliadoInput.classList.add('is-invalid');
                   let feedbackDiv = nroAfiliadoInput.parentNode.querySelector('.invalid-feedback');
                   if (!feedbackDiv) {

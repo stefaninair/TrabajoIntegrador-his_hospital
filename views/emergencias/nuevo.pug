@@ -2,22 +2,22 @@ extends ../layout
 
 block content
   style.
-    /* Estilos personalizados para ajustar el espaciado del checkbox de anónimo */
+   
     .form-check-inline-tight {
-      display: flex; /* Usar flexbox para control de alineación */
-      align-items: center; /* Alinear verticalmente el checkbox y el texto */
-      margin-bottom: 0.5rem !important; /* Mantener un margen inferior reducido */
-      gap: 0.25rem; /* Añadir un pequeño espacio entre el checkbox y el label */
+      display: flex; 
+      align-items: center; 
+      margin-bottom: 0.5rem !important; 
+      gap: 0.25rem; 
     }
     .form-check-inline-tight .form-check-input {
-      margin-right: 0; /* Eliminar el margen por defecto del input */
+      margin-right: 0; 
     }
     .form-check-inline-tight .form-check-label {
-      padding-left: 0; /* Eliminar el padding por defecto del label */
+      padding-left: 0; 
     }
-    /* Asegurarse de que el label no ocupe más espacio del necesario */
+    
     .form-check-inline-tight label {
-      line-height: 1.2; /* Ajustar la altura de línea si es necesario */
+      line-height: 1.2; 
     }
 
 
@@ -30,13 +30,12 @@ block content
           .alert.alert-danger= errores.general
 
         form(action="/emergencias", method="POST")
-          // Checkbox para paciente anónimo más cerca de su texto
-          // Eliminamos .mb-3 aquí si la clase form-check-inline-tight ya lo maneja
+          
           .form-check.form-check-inline-tight
             input.form-check-input(type="checkbox", id="es_anonimo", name="es_anonimo", checked=(es_anonimo ? true : false))
             label.form-check-label(for="es_anonimo") Paciente sin identificar (Anónimo)
 
-          // Fila 1: DNI y Nombre
+          
           .row
             .col-md-6.mb-3
               label.form-label(for="dni_ingresado") DNI / Identificador Provisional:
@@ -49,7 +48,7 @@ block content
               if errores.nombre_temp
                 .text-danger.mt-1= errores.nombre_temp
 
-          // Fila 2: Apellido y Género
+          
           .row
             .col-md-6.mb-3
               label.form-label(for="apellido_temp") Apellido (si se conoce):
@@ -65,7 +64,7 @@ block content
               if errores.sexo
                 .text-danger.mt-1= errores.sexo
 
-          // Fila 3: Contextura Física y Sala de Emergencia Destino (AHORA JUNTOS)
+          
           .row
             .col-md-6.mb-3
               label.form-label(for="contextura_fisica") Contextura Física:
@@ -87,7 +86,7 @@ block content
               if errores.id_sala_emergencia
                 .text-danger.mt-1= errores.id_sala_emergencia
 
-          // Fila 4: Motivo de la Emergencia (ocupa toda la fila para mayor espacio)
+          
           .mb-3
             label.form-label(for="motivo_emergencia") Motivo de la Emergencia:
             textarea.form-control(id="motivo_emergencia", name="motivo_emergencia", rows="4", required)= motivo_emergencia

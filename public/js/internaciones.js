@@ -1,5 +1,4 @@
-// Esta función es para la página de nueva.pug para mostrar/ocultar campos adicionales.
-// No usa 'require' porque se ejecuta en el navegador.
+
 function mostrarCamposAdicionales(valor) {
   const camposMaternidad = document.getElementById("campos-maternidad");
   const camposCirugia = document.getElementById("campos-cirugia");
@@ -31,33 +30,32 @@ function mostrarCamposAdicionales(valor) {
   }
 }
 
-// Se ejecuta una vez que el DOM está completamente cargado.
+
 document.addEventListener('DOMContentLoaded', function() {
-  // Lógica para la página de nueva.pug
+  
   const motivoSelect = document.getElementById('motivo');
   if (motivoSelect) {
-    // Si estamos en nueva.pug, inicializa los campos condicionales y añade el listener.
+    
     mostrarCamposAdicionales(motivoSelect.value);
     motivoSelect.addEventListener('change', (event) => {
         mostrarCamposAdicionales(event.target.value);
     });
   }
 
-  // --- LÓGICA PARA seleccionar_cama.pug ---
+  
   const alaSelect = document.getElementById('ala');
   const habitacionesContainer = document.getElementById('habitaciones-container');
   const selectedCamaIdInput = document.getElementById('selected_cama_id');
   const btnFinalizarInternacion = document.getElementById('btn-finalizar-internacion');
 
-  // Asegúrate de que `pacienteSexo` esté definido globalmente en seleccionar_cama.pug
-  // por el script inline dentro de ese archivo.
+  
 
-  if (alaSelect && habitacionesContainer) { // Solo ejecuta esta lógica si estos elementos existen
+  if (alaSelect && habitacionesContainer) { 
     alaSelect.addEventListener('change', async () => {
       const alaId = alaSelect.value;
-      habitacionesContainer.innerHTML = ''; // Limpiar habitaciones anteriores
-      selectedCamaIdInput.value = ''; // Limpiar cama seleccionada
-      btnFinalizarInternacion.disabled = true; // Deshabilitar botón de finalizar
+      habitacionesContainer.innerHTML = ''; 
+      selectedCamaIdInput.value = ''; 
+      btnFinalizarInternacion.disabled = true; 
 
       if (alaId) {
         try {
@@ -67,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (habitaciones.length > 0) {
             habitaciones.forEach(habitacion => {
               const habitacionCardCol = document.createElement('div');
-              habitacionCardCol.classList.add('col-md-6', 'col-lg-4'); // 2 o 3 columnas por fila
+              habitacionCardCol.classList.add('col-md-6', 'col-lg-4'); 
               habitacionCardCol.innerHTML = `
                 <div class="card h-100 shadow-sm border-secondary">
                   <div class="card-header bg-light">
@@ -83,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
               `;
               habitacionesContainer.appendChild(habitacionCardCol);
 
-              // Cargar camas para cada habitación y mostrarlas dentro de la tarjeta
+              
               loadAndDisplayCamasInCard(habitacion.id, `camas-display-${habitacion.id}`);
             });
           } else {
@@ -96,13 +94,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // Función para cargar las camas y mostrarlas como "tarjetas" pequeñas dentro de la tarjeta de la habitación
+    
     async function loadAndDisplayCamasInCard(habitacionId, containerId) {
         const container = document.getElementById(containerId);
         try {
             const response = await fetch(`/internaciones/api/camas-por-habitacion/${habitacionId}`);
             const camas = await response.json();
-            container.innerHTML = ''; // Limpiar el "Cargando camas..."
+            container.innerHTML = ''; 
 
             if (camas.length > 0) {
                 camas.forEach(cama => {
@@ -196,23 +194,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Función para manejar la selección de una cama (clic en el badge de cama)
+    
     function addCamaBadgeListeners() {
       document.querySelectorAll('.cama-selectable').forEach(badge => {
         badge.addEventListener('click', () => {
-          // Remover la selección de cualquier otra cama
+          
           document.querySelectorAll('.cama-selectable').forEach(otherBadge => {
             otherBadge.classList.remove('selected-cama');
           });
 
-          // Resaltar la cama seleccionada
+          
           badge.classList.add('selected-cama');
 
-          // Guardar el ID de la cama en el input oculto
+          
           selectedCamaIdInput.value = badge.dataset.camaId;
-          btnFinalizarInternacion.disabled = false; // Habilitar botón de finalizar
+          btnFinalizarInternacion.disabled = false; 
         });
       });
     }
-  } // Fin if (alaSelect && habitacionesContainer)
+  } 
 });

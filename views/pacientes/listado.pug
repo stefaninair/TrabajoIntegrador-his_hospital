@@ -1,35 +1,35 @@
 extends ../layout
 
 block content
-    // Estilos personalizados para animaciones y diseño (mantengo los que ya teníamos y añado algunos para los botones pequeños)
+    
     style.
         .container {
-            max-width: 1300px; /* Un poco más ancho para la tabla */
+            max-width: 1300px; 
         }
         .card-header {
-            background-image: linear-gradient(to right, #007bff, #0056b3); /* Degradado azul */
+            background-image: linear-gradient(to right, #007bff, #0056b3); 
         }
         .btn-lg {
             font-size: 1.1rem;
             padding: 0.75rem 1.5rem;
         }
         .table-dark th {
-            background-color: #343a40; /* Fondo oscuro para encabezado de tabla */
+            background-color: #343a40; 
             color: white;
             border-bottom: 2px solid #007bff;
         }
         .table-hover tbody tr:hover {
-            background-color: #f1f1f1; /* Resaltado al pasar el mouse */
+            background-color: #f1f1f1; 
         }
         .rounded-pill {
-            border-radius: 50rem !important; /* Asegura el redondeo completo */
+            border-radius: 50rem !important; 
         }
-        /* Estilos para tooltips personalizados */
+       
         .tooltip.show {
             opacity: 1 !important;
         }
         .tooltip-inner {
-            background-color: #343a40; /* Fondo oscuro del tooltip */
+            background-color: #343a40; 
             color: #fff;
             padding: .5rem .75rem;
             border-radius: .25rem;
@@ -37,7 +37,7 @@ block content
         }
         .tooltip.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
         .tooltip.bs-tooltip-top .tooltip-arrow::before {
-            border-top-color: #343a40; /* Color de la flecha del tooltip */
+            border-top-color: #343a40; 
         }
         .badge.bg-success {
             background-color: #28a745 !important;
@@ -52,17 +52,17 @@ block content
             background-color: #17a2b8 !important;
         }
 
-        /* NUEVOS ESTILOS PARA BOTONES DE ACCIÓN EN TABLA (si queremos texto) */
+        
         .btn-action-text {
-            display: flex; /* Para alinear icono y texto */
-            align-items: center; /* Centrar verticalmente */
-            gap: 0.25rem; /* Pequeño espacio entre icono y texto */
-            padding: 0.3rem 0.6rem; /* Ajustar padding para que no sean enormes */
-            font-size: 0.85rem; /* Reducir un poco el tamaño de fuente */
-            border-radius: 0.25rem; /* Esquinas ligeramente redondeadas */
+            display: flex; 
+            align-items: center; 
+            gap: 0.25rem; 
+            padding: 0.3rem 0.6rem; 
+            font-size: 0.85rem; 
+            border-radius: 0.25rem; 
         }
         .btn-action-text i {
-            font-size: 0.9rem; /* Tamaño del ícono */
+            font-size: 0.9rem; 
         }
 
 
@@ -108,7 +108,7 @@ block content
                                 th Estado
                                 th Acciones
                         tbody#pacientesTableBody
-                            // Contenido de la tabla se carga dinámicamente
+                            
 
     .modal.fade#confirmDeleteModal(tabindex='-1', aria-labelledby='confirmDeleteModalLabel', aria-hidden='true')
         .modal-dialog

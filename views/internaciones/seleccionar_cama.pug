@@ -16,11 +16,7 @@ block content
               each ala in alas
                 option(value=ala.id) #{ala.nombre}
 
-          // Contenedor para las tarjetas de Habitaciones (ahora las camas irán dentro de estas)
           #habitaciones-container.row.mt-4.g-3
-            // Aquí se cargarán dinámicamente las tarjetas de habitaciones con sus camas
-
-          // Campo oculto para almacenar el ID de la cama seleccionada
           input(type="hidden", name="id_cama", id="selected_cama_id", required)
 
           br

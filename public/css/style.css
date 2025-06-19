@@ -1,41 +1,41 @@
-/* Custom colors */
+
 .bg-primary-blue {
-  background-color: #0d6efd !important; /* Bootstrap primary blue */
+  background-color: #0d6efd !important; 
 }
 
 .bg-primary-pink {
-  background-color: #fd14d6 !important; /* A vibrant pink/orange */
+  background-color: #fd14d6 !important; 
 }
 
-/* Estilo para las tarjetas de cama */
+
 .cama-badge {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 90px; /* Ancho fijo para las tarjetas de cama */
-  height: 90px; /* Altura fija para las tarjetas de cama */
-  border: 2px solid; /* Borde para el color del estado */
-  transition: all 0.2s ease-in-out; /* Transición suave al interactuar */
-  overflow: hidden; /* Hide overflow content */
-  padding: 5px; /* Adjust padding to prevent text overflow */
-  box-sizing: border-box; /* Include padding in width/height */
+  width: 90px; 
+  height: 90px; 
+  border: 2px solid; 
+  transition: all 0.2s ease-in-out; 
+  overflow: hidden; 
+  padding: 5px; 
+  box-sizing: border-box; 
 }
 
-/* Estilo para cama seleccionable al pasar el ratón */
+
 .cama-selectable:hover {
-  transform: translateY(-3px); /* Pequeño efecto de elevación */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra al pasar el ratón */
+  transform: translateY(-3px); 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
 }
 
-/* Estilo para la cama seleccionada */
+
 .selected-cama {
-  border-color: #0d6efd !important; /* Color primario de Bootstrap (azul) */
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important; /* Resplandor azul de selección */
-  transform: scale(1.05); /* Ligeramente más grande al ser seleccionada */
+  border-color: #0d6efd !important; 
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important; 
+  transform: scale(1.05); 
 }
 
-/* Ajustes para el ícono de "Adjuntar" en el input-group */
+
 .input-group-text i {
   display: flex;
   align-items: center;
@@ -43,12 +43,12 @@
   width: 1em;
 }
 
-/* Ajustes para los iconos de las cards de cama */
+
 .cama-badge .bi {
-  font-size: 1.8rem !important; /* Aumentar el tamaño del ícono */
+  font-size: 1.8rem !important; 
 }
 
-/* Ensure room cards are not clickable themselves and remove previous border highlights */
+
 .card[data-habitacion-id] {
     cursor: default !important;
 }
@@ -57,39 +57,39 @@
     border-width: 1px !important;
 }
 
-/* Increase visibility of bed badges in card-body */
+
 .card-body > .d-flex.flex-wrap.gap-2 {
     min-height: 100px;
     align-items: center;
     justify-content: center;
 }
 
-/* Font size adjustment for text inside cama-badge to prevent overflow */
+
 .cama-badge .fw-bold, .cama-badge small {
-  font-size: 0.8rem; /* Smaller font size for better fit */
-  line-height: 1.1; /* Adjust line height */
-  white-space: normal; /* Allow text to wrap */
-  word-break: break-word; /* Break long words */
+  font-size: 0.8rem; 
+  line-height: 1.1; 
+  white-space: normal; 
+  word-break: break-word; 
 }
 
-/* Specific border colors for custom backgrounds */
-.bg-primary-blue { border-color: #0a58ca !important; } /* Darker blue for border */
-.bg-primary-pink { border-color: #f518c5 !important; } /* Darker pink for border */
-.bg-success { border-color: #198754 !important; } /* Darker green for border */
-.bg-warning { border-color: #ffc107 !important; } /* Darker yellow for border */
-.bg-danger { border-color: #dc3545 !important; } /* Darker red for border */
-.bg-secondary { border-color: #6c757d !important; } /* Darker gray for border */
+
+.bg-primary-blue { border-color: #0a58ca !important; } 
+.bg-primary-pink { border-color: #f518c5 !important; } 
+.bg-success { border-color: #198754 !important; } 
+.bg-warning { border-color: #ffc107 !important; } 
+.bg-danger { border-color: #dc3545 !important; } 
+.bg-secondary { border-color: #6c757d !important; } 
 
 .table-scroll-container {
-    max-height: calc(100vh - 400px); /* Ajusta esta altura según sea necesario */
-    overflow-y: auto; /* Habilita el scroll vertical cuando el contenido excede la altura máxima */
-    overflow-x: hidden; /* Asegura que no haya scroll horizontal extra innecesario */
-    border: 1px solid #dee2e6; /* Borde opcional para el contenedor de scroll */
-    border-radius: 0.3rem; /* Bordes redondeados opcionales */
+    max-height: calc(100vh - 400px); 
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    border: 1px solid #dee2e6; 
+    border-radius: 0.3rem; 
 }
 .table-scroll-container table thead {
     position: sticky;
     top: 0;
-    z-index: 1; /* Asegura que el thead esté por encima del tbody */
-    background-color: #343a40; /* Fondo para el thead pegajoso */
+    z-index: 1; 
+    background-color: #343a40; 
 }

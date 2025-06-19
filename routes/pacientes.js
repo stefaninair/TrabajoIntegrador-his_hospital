@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const moment = require('moment'); // Asegúrate de que moment esté instalado y requerido
+const moment = require('moment'); 
 
 // Ruta para mostrar el listado de pacientes (GET /pacientes)
 router.get('/', async (req, res, next) => {
@@ -54,7 +54,7 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-// Ruta API para buscar pacientes (GET /pacientes/buscar)
+// Ruta para buscar pacientes (GET /pacientes/buscar)
 router.get('/buscar', async (req, res, next) => {
     const searchTerm = req.query.term ? `%${req.query.term}%` : '%';
     let connection;
@@ -237,7 +237,7 @@ router.get('/editar/:id', async (req, res, next) => {
         connection = await req.db.getConnection();
         const [pacienteResult] = await connection.query('SELECT * FROM pacientes WHERE id = ?', [id]);
         
-        // Verificación defensiva antes de acceder a pacienteResult[0]
+     
         if (!pacienteResult || pacienteResult.length === 0) {
             req.flash('error', 'Paciente no encontrado.');
             return res.redirect('/pacientes');
@@ -264,7 +264,6 @@ router.get('/editar/:id', async (req, res, next) => {
             nombre: oldInput.nombre || paciente.nombre || '',
             telefono: oldInput.telefono || paciente.telefono || '',
             correo: oldInput.correo || paciente.correo || '',
-            // Asegurarse de que la fecha se formatee solo si existe y es válida
             fecha_nacimiento: oldInput.fecha_nacimiento || (paciente.fecha_nacimiento && moment(paciente.fecha_nacimiento).isValid() ? moment(paciente.fecha_nacimiento).format('YYYY-MM-DD') : ''),
             sexo: oldInput.sexo || paciente.sexo || '',
             direccion: oldInput.direccion || paciente.direccion || '',

@@ -1,4 +1,4 @@
-const router = require('express').Router(); // Necesitas importar Router aquí
+const router = require('express').Router(); 
 
 // Ruta para mostrar el formulario de registro de emergencia (GET /emergencias/nuevo)
 router.get('/nuevo', async (req, res, next) => {
@@ -167,4 +167,4 @@ router.post('/', async (req, res, next) => {
     }
 });
 
-module.exports = router; // ¡Esta línea es ESENCIAL y debe ser la última!
+module.exports = router; 
